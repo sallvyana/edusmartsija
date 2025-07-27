@@ -5,8 +5,9 @@ import { questions } from './questions';
 import { useState, useEffect, useRef } from 'react';
 
 export default function QuizPage() {
+  // Ambil kategori dari query params
   const [category, setCategory] = useState('');
-  const [step, setStep] = useState(-2); // -2: pilih kategori, -1: input nama, 0+: soal
+  const [step, setStep] = useState(-1); // -1: input nama, 0+: soal
   const [selected, setSelected] = useState(null);
   const [showFeedback, setShowFeedback] = useState(false);
   const [score, setScore] = useState(0);
@@ -19,6 +20,14 @@ export default function QuizPage() {
   const [answerTimes, setAnswerTimes] = useState([]);
   const timerRef = useRef();
 
+  // Ambil kategori dari URL
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const cat = params.get('category');
+      if (cat && questions[cat]) setCategory(cat);
+    }
+  }, []);
   // Soal sesuai kategori
   const quizQuestions = category ? questions[category] : [];
   const current = quizQuestions[step];
@@ -73,13 +82,6 @@ export default function QuizPage() {
 
   return (
     <>
-      {step === -2 && (
-        <KategoriComponent
-          category={category}
-          setCategory={setCategory}
-          setStep={setStep}
-        />
-      )}
       {step === -1 && (
         <NamaComponent
           name={name}
@@ -107,6 +109,7 @@ export default function QuizPage() {
           quizQuestions={quizQuestions}
           current={current}
           selected={selected}
+          setSelected={setSelected}
           showFeedback={showFeedback}
           handleAnswer={handleAnswer}
           nextQuestion={nextQuestion}
@@ -119,38 +122,7 @@ export default function QuizPage() {
   );
 }
 
-function KategoriComponent({ category, setCategory, setStep }) {
-  return (
-    <main style={{
-      padding: '32px',
-      textAlign: 'center',
-      maxWidth: '400px',
-      margin: '0 auto',
-      background: '#fff',
-      color: '#222',
-      borderRadius: '16px',
-      boxShadow: '0 2px 16px rgba(0,0,0,0.07)'
-    }}>
-      <h1 style={{color: '#222'}}>Pilih Kategori Kuis</h1>
-      <div style={{display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 32}}>
-        {Object.keys(questions).map(cat => (
-          <button
-            key={cat}
-            style={{padding: '12px 24px', fontSize: 18, borderRadius: 8, border: '1px solid #ccc', background: category === cat ? '#222' : '#fff', color: category === cat ? '#fff' : '#222', cursor: 'pointer'}}
-            onClick={() => setCategory(cat)}
-          >
-            {cat.toUpperCase()}
-          </button>
-        ))}
-      </div>
-      <button
-        style={{padding: '12px 32px', background: category ? '#222' : '#ccc', color: '#fff', borderRadius: '8px', fontWeight: '600', fontSize: '1.1rem', cursor: category ? 'pointer' : 'not-allowed', border: 'none'}}
-        disabled={!category}
-        onClick={() => setStep(-1)}
-      >Lanjut</button>
-    </main>
-  );
-}
+// KategoriComponent dihapus, pemilihan kategori hanya di home page
 
 function NamaComponent({ name, setName, error, setError, setStep }) {
   return (
@@ -159,10 +131,10 @@ function NamaComponent({ name, setName, error, setError, setStep }) {
       textAlign: 'center',
       maxWidth: '400px',
       margin: '0 auto',
-      background: '#fff',
+      background: '#e3f2fd',
       color: '#222',
       borderRadius: '16px',
-      boxShadow: '0 2px 16px rgba(0,0,0,0.07)'
+      boxShadow: '0 2px 16px rgba(33,150,243,0.07)'
     }}>
       <h1 style={{color: '#222'}}>Masukkan Nama Anda</h1>
       <input
@@ -230,10 +202,10 @@ function SelesaiComponent({ name, score, category, quizQuestions, setStep, setSc
     <main style={{
       padding: '32px',
       textAlign: 'center',
-      background: '#fff',
+      background: '#e3f2fd',
       color: '#222',
       borderRadius: '16px',
-      boxShadow: '0 2px 16px rgba(0,0,0,0.07)',
+      boxShadow: '0 2px 16px rgba(33,150,243,0.07)',
       maxWidth: '600px',
       margin: '0 auto'
     }}>
@@ -310,10 +282,10 @@ function SoalComponent({ step, quizQuestions, current, selected, showFeedback, h
       padding: '32px',
       maxWidth: '500px',
       margin: '0 auto',
-      background: '#fff',
+      background: '#e3f2fd',
       color: '#222',
       borderRadius: '16px',
-      boxShadow: '0 2px 16px rgba(0,0,0,0.07)',
+      boxShadow: '0 2px 16px rgba(33,150,243,0.07)',
       position: 'relative'
     }}>
       {/* Statistik Live */}
@@ -346,7 +318,7 @@ function SoalComponent({ step, quizQuestions, current, selected, showFeedback, h
         {current.options.map((opt, idx) => (
           <button
             key={idx}
-            onClick={() => setSelected(idx)}
+            onClick={() => !showFeedback && setSelected(idx)}
             disabled={showFeedback}
             style={{
               display: 'block',
