@@ -346,32 +346,39 @@ function SoalComponent({ step, quizQuestions, current, selected, showFeedback, h
         {current.options.map((opt, idx) => (
           <button
             key={idx}
-            onClick={() => handleAnswer(idx)}
+            onClick={() => setSelected(idx)}
             disabled={showFeedback}
             style={{
               display: 'block',
               width: '100%',
               marginBottom: '12px',
               padding: '16px',
-              background: selected === idx
-                ? (idx === current.answer ? '#222' : '#bbb')
-                : '#f7f7f7',
-              color: selected === idx
-                ? (idx === current.answer ? '#fff' : '#222')
-                : '#222',
+              background: selected === idx ? '#e3f2fd' : '#fff',
+              color: selected === idx ? '#2196f3' : '#222',
               borderRadius: '8px',
-              border: '1px solid #bbb',
+              border: selected === idx ? '2px solid #2196f3' : '1px solid #bbb',
               cursor: showFeedback ? 'not-allowed' : 'pointer',
-              fontWeight: '500',
+              fontWeight: '600',
               transition: 'background 0.2s, color 0.2s',
               textAlign: 'left',
-              fontSize: 17
+              fontSize: 18
             }}
           >
-            <Image src="/review.png" alt="Opsi" style={{height:22,marginRight:10}} />
             <span style={{fontWeight: 700, marginRight: 12}}>{String.fromCharCode(65 + idx)}</span> {opt}
           </button>
         ))}
+      </div>
+      <div style={{display:'flex',justifyContent:'space-between',marginTop:32}}>
+        <button
+          onClick={() => setStep(step > 0 ? step - 1 : 0)}
+          disabled={step === 0}
+          style={{padding:'10px 28px',background:step === 0 ? '#eee' : '#43a047',color:step === 0 ? '#bbb' : '#fff',borderRadius:8,border:'none',fontWeight:'600',cursor:step === 0 ? 'not-allowed' : 'pointer',fontSize:16}}
+        >Previous</button>
+        <button
+          onClick={() => selected !== null && handleAnswer(selected)}
+          disabled={selected === null}
+          style={{padding:'10px 28px',background:selected === null ? '#eee' : '#2196f3',color:selected === null ? '#bbb' : '#fff',borderRadius:8,border:'none',fontWeight:'600',cursor:selected === null ? 'not-allowed' : 'pointer',fontSize:16}}
+        >Next</button>
       </div>
       {showFeedback && (
         <div style={{marginTop: '18px'}}>
@@ -382,7 +389,7 @@ function SoalComponent({ step, quizQuestions, current, selected, showFeedback, h
           <div style={{marginTop: '18px'}}>
             <button onClick={nextQuestion}
               style={{padding: '10px 28px', background: 'var(--primary)', color: '#fff', borderRadius: '8px', border: 'none', fontWeight: '600', cursor: 'pointer', display:'flex',alignItems:'center',gap:8}}>
-              <Image src="/next.png" alt="Next" style={{height:18}} /> Selanjutnya
+              Selanjutnya
             </button>
           </div>
         </div>
