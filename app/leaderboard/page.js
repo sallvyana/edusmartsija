@@ -18,7 +18,7 @@ export default function LeaderboardPage() {
   return (
     <main style={{padding: '32px', maxWidth: '500px', margin: '0 auto'}}>
       <header style={{display:'flex',alignItems:'center',gap:16,padding:'16px 0'}}>
-        <img src="/leaderboard.png" alt="Leaderboard" style={{height:40}} />
+        <Image src="/leaderboard.png" alt="Leaderboard" style={{height:40}} />
         <h1 style={{fontWeight:700,fontSize:24,color:'var(--primary)'}}>Leaderboard</h1>
       </header>
       {leaderboard.length === 0 ? (
@@ -37,7 +37,7 @@ export default function LeaderboardPage() {
               <tr key={user.name + idx} style={{background: idx % 2 === 0 ? '#f7f7f7' : '#fff'}}>
                 <td style={{padding: '12px', textAlign: 'center', fontWeight: 'bold'}}>{idx + 1}</td>
                 <td style={{padding: '12px', display:'flex',alignItems:'center',gap:8}}>
-                  <img src="/user.png" alt="User" style={{height:28,marginRight:8}} />{user.name}
+                  < Image src="/user.png" alt="User" style={{height:28,marginRight:8}} />{user.name}
                 </td>
                 <td style={{padding: '12px', textAlign: 'center'}}>{user.score}</td>
               </tr>

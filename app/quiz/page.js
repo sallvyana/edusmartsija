@@ -1,5 +1,6 @@
 "use client";
 
+import Image from 'next/image';
 import { questions } from './questions';
 import { useState, useEffect, useRef } from 'react';
 
@@ -367,7 +368,7 @@ function SoalComponent({ step, quizQuestions, current, selected, showFeedback, h
               fontSize: 17
             }}
           >
-            <img src="/review.png" alt="Opsi" style={{height:22,marginRight:10}} />
+            <Image src="/review.png" alt="Opsi" style={{height:22,marginRight:10}} />
             <span style={{fontWeight: 700, marginRight: 12}}>{String.fromCharCode(65 + idx)}</span> {opt}
           </button>
         ))}
@@ -381,7 +382,7 @@ function SoalComponent({ step, quizQuestions, current, selected, showFeedback, h
           <div style={{marginTop: '18px'}}>
             <button onClick={nextQuestion}
               style={{padding: '10px 28px', background: 'var(--primary)', color: '#fff', borderRadius: '8px', border: 'none', fontWeight: '600', cursor: 'pointer', display:'flex',alignItems:'center',gap:8}}>
-              <img src="/next.png" alt="Next" style={{height:18}} /> Selanjutnya
+              <Image src="/next.png" alt="Next" style={{height:18}} /> Selanjutnya
             </button>
           </div>
         </div>

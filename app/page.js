@@ -6,7 +6,7 @@ export default function Home() {
   return (
     <main className={styles.main}>
       <header style={{display:'flex',alignItems:'center',gap:16,padding:'16px 0'}}>
-        <img src="/logoutama.png" alt="Logo utama" style={{height:48}} />
+        <Image src="/logoutama.png" alt="Logo utama" style={{height:48}} />
         <h1 className={styles.title} style={{color:'var(--primary)'}}>edusijaexpert.<br />Quiz Challenge</h1>
       </header>
       <p className={styles.subtitle}>
@@ -34,16 +34,16 @@ export default function Home() {
         <h2>Kategori Quiz</h2>
         <div className={styles.categories} style={{display:'flex',gap:32,justifyContent:'center',margin:'32px 0'}}>
           <Link href="/quiz?category=iot" className={styles.categoryBtn} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:8}}>
-            <img src="/iot.png" alt="IoT" style={{height:40}} />IoT
+            <Image src="/iot.png" alt="IoT" style={{height:40}} />IoT
           </Link>
           <Link href="/quiz?category=iaas" className={styles.categoryBtn} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:8}}>
-            <img src="/iaas.png" alt="IaaS" style={{height:40}} />IaaS
+            <Image src="/iaas.png" alt="IaaS" style={{height:40}} />IaaS
           </Link>
           <Link href="/quiz?category=paas" className={styles.categoryBtn} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:8}}>
-            <img src="/paas.png" alt="PaaS" style={{height:40}} />PaaS
+            <Image src="/paas.png" alt="PaaS" style={{height:40}} />PaaS
           </Link>
           <Link href="/quiz?category=saas" className={styles.categoryBtn} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:8}}>
-            <img src="/saas.png" alt="SaaS" style={{height:40}} />SaaS
+            <Image src="/saas.png" alt="SaaS" style={{height:40}} />SaaS
           </Link>
         </div>
       </section>
