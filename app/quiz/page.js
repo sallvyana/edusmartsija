@@ -1,4 +1,4 @@
-
+"use client";
 
 import { questions } from './questions';
 import { useState, useEffect, useRef } from 'react';
