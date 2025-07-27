@@ -72,7 +72,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-      {step === -2 && <KategoriComponent />}
     </main>
   );
 }
