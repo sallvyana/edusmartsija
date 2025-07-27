@@ -71,6 +71,15 @@ export default function Home() {
           </div>
         </div>
       </section>
+      {step === -2 && <KategoriComponent />}
     </main>
+  );
+}
+
+function KategoriComponent() {
+  return (
+    <div>
+      {/* Konten Kategori */}
+    </div>
   );
 }

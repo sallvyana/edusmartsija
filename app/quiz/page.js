@@ -1,8 +1,9 @@
 
+
 import { questions } from './questions';
 import { useState, useEffect, useRef } from 'react';
 
-
+export default function QuizPage() {
   const [category, setCategory] = useState('');
   const [step, setStep] = useState(-2); // -2: pilih kategori, -1: input nama, 0+: soal
   const [selected, setSelected] = useState(null);
@@ -69,79 +70,125 @@ import { useState, useEffect, useRef } from 'react';
     if (step === 0) setSeconds(0);
   }, [step]);
 
-  // Pilih kategori
-  if (step === -2) {
-    return (
-      <main style={{
-        padding: '32px',
-        textAlign: 'center',
-        maxWidth: '400px',
-        margin: '0 auto',
-        background: '#fff',
-        color: '#222',
-        borderRadius: '16px',
-        boxShadow: '0 2px 16px rgba(0,0,0,0.07)'
-      }}>
-        <h1 style={{color: '#222'}}>Pilih Kategori Kuis</h1>
-        <div style={{display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 32}}>
-          {Object.keys(questions).map(cat => (
-            <button
-              key={cat}
-              style={{padding: '12px 24px', fontSize: 18, borderRadius: 8, border: '1px solid #ccc', background: category === cat ? '#222' : '#fff', color: category === cat ? '#fff' : '#222', cursor: 'pointer'}}
-              onClick={() => setCategory(cat)}
-            >
-              {cat.toUpperCase()}
-            </button>
-          ))}
-        </div>
-        <button
-          style={{padding: '12px 32px', background: category ? '#222' : '#ccc', color: '#fff', borderRadius: '8px', fontWeight: '600', fontSize: '1.1rem', cursor: category ? 'pointer' : 'not-allowed', border: 'none'}}
-          disabled={!category}
-          onClick={() => setStep(-1)}
-        >Lanjut</button>
-      </main>
-    );
-  }
-
-  // Input nama pemain
-  if (step === -1) {
-    return (
-      <main style={{
-        padding: '32px',
-        textAlign: 'center',
-        maxWidth: '400px',
-        margin: '0 auto',
-        background: '#fff',
-        color: '#222',
-        borderRadius: '16px',
-        boxShadow: '0 2px 16px rgba(0,0,0,0.07)'
-      }}>
-        <h1 style={{color: '#222'}}>Masukkan Nama Anda</h1>
-        <input
-          type="text"
-          value={name}
-          onChange={e => setName(e.target.value)}
-          placeholder="Nama pemain"
-          style={{padding: '12px', fontSize: '1rem', borderRadius: '8px', border: '1px solid #bbb', width: '100%', marginBottom: '16px', background: '#f7f7f7', color: '#222'}}
+  return (
+    <>
+      {step === -2 && (
+        <KategoriComponent
+          category={category}
+          setCategory={setCategory}
+          setStep={setStep}
         />
-        {error && <p style={{color: '#f44336'}}>{error}</p>}
-        <button
-          style={{padding: '12px 32px', background: '#222', color: '#fff', borderRadius: '8px', fontWeight: '600', fontSize: '1.1rem', cursor: 'pointer', border: 'none'}}
-          onClick={() => {
-            if (!name.trim()) {
-              setError('Nama tidak boleh kosong!');
-              return;
-            }
-            setStep(0);
-          }}
-        >Mulai Kuis</button>
-      </main>
-    );
-  }
+      )}
+      {step === -1 && (
+        <NamaComponent
+          name={name}
+          setName={setName}
+          error={error}
+          setError={setError}
+          setStep={setStep}
+        />
+      )}
+      {step >= quizQuestions.length && (
+        <SelesaiComponent
+          name={name}
+          score={score}
+          category={category}
+          quizQuestions={quizQuestions}
+          setStep={setStep}
+          setScore={setScore}
+          setName={setName}
+          setCategory={setCategory}
+        />
+      )}
+      {step >= 0 && step < quizQuestions.length && (
+        <SoalComponent
+          step={step}
+          quizQuestions={quizQuestions}
+          current={current}
+          selected={selected}
+          showFeedback={showFeedback}
+          handleAnswer={handleAnswer}
+          nextQuestion={nextQuestion}
+          answerTimes={answerTimes}
+          streak={streak}
+          seconds={seconds}
+        />
+      )}
+    </>
+  );
+}
 
-  // Selesai kuis
-  if (step >= quizQuestions.length) {
-    // Simpan skor ke localStorage
+function KategoriComponent({ category, setCategory, setStep }) {
+  return (
+    <main style={{
+      padding: '32px',
+      textAlign: 'center',
+      maxWidth: '400px',
+      margin: '0 auto',
+      background: '#fff',
+      color: '#222',
+      borderRadius: '16px',
+      boxShadow: '0 2px 16px rgba(0,0,0,0.07)'
+    }}>
+      <h1 style={{color: '#222'}}>Pilih Kategori Kuis</h1>
+      <div style={{display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 32}}>
+        {Object.keys(questions).map(cat => (
+          <button
+            key={cat}
+            style={{padding: '12px 24px', fontSize: 18, borderRadius: 8, border: '1px solid #ccc', background: category === cat ? '#222' : '#fff', color: category === cat ? '#fff' : '#222', cursor: 'pointer'}}
+            onClick={() => setCategory(cat)}
+          >
+            {cat.toUpperCase()}
+          </button>
+        ))}
+      </div>
+      <button
+        style={{padding: '12px 32px', background: category ? '#222' : '#ccc', color: '#fff', borderRadius: '8px', fontWeight: '600', fontSize: '1.1rem', cursor: category ? 'pointer' : 'not-allowed', border: 'none'}}
+        disabled={!category}
+        onClick={() => setStep(-1)}
+      >Lanjut</button>
+    </main>
+  );
+}
+
+function NamaComponent({ name, setName, error, setError, setStep }) {
+  return (
+    <main style={{
+      padding: '32px',
+      textAlign: 'center',
+      maxWidth: '400px',
+      margin: '0 auto',
+      background: '#fff',
+      color: '#222',
+      borderRadius: '16px',
+      boxShadow: '0 2px 16px rgba(0,0,0,0.07)'
+    }}>
+      <h1 style={{color: '#222'}}>Masukkan Nama Anda</h1>
+      <input
+        type="text"
+        value={name}
+        onChange={e => setName(e.target.value)}
+        placeholder="Nama pemain"
+        style={{padding: '12px', fontSize: '1rem', borderRadius: '8px', border: '1px solid #bbb', width: '100%', marginBottom: '16px', background: '#f7f7f7', color: '#222'}}
+      />
+      {error && <p style={{color: '#f44336'}}>{error}</p>}
+      <button
+        style={{padding: '12px 32px', background: '#222', color: '#fff', borderRadius: '8px', fontWeight: '600', fontSize: '1.1rem', cursor: 'pointer', border: 'none'}}
+        onClick={() => {
+          if (!name.trim()) {
+            setError('Nama tidak boleh kosong!');
+            return;
+          }
+          setStep(0);
+        }}
+      >Mulai Kuis</button>
+    </main>
+  );
+}
+
+function SelesaiComponent({ name, score, category, quizQuestions, setStep, setScore, setName, setCategory }) {
+  // Simpan skor ke localStorage
+  useEffect(() => {
     if (name) {
       const data = localStorage.getItem('leaderboard');
       let arr = [];
@@ -149,114 +196,114 @@ import { useState, useEffect, useRef } from 'react';
       arr.push({ name, score, category });
       localStorage.setItem('leaderboard', JSON.stringify(arr));
     }
+  }, [name, score, category, quizQuestions.length]);
 
-    // Hitung statistik waktu
-    // Untuk demo, waktu total dan rata-rata per soal dibuat random (implementasi real: gunakan timer)
-    const totalSeconds = quizQuestions.length * 5 + Math.floor(Math.random() * 30); // simulasi
-    const avgSeconds = Math.round(totalSeconds / quizQuestions.length);
+  // Hitung statistik waktu
+  const totalSeconds = quizQuestions.length * 5 + Math.floor(Math.random() * 30); // simulasi
+  const avgSeconds = Math.round(totalSeconds / quizQuestions.length);
 
-    // Hitung grade
-    const percent = Math.round((score / quizQuestions.length) * 100);
-    let grade = 'A';
-    if (percent >= 90) grade = 'A';
-    else if (percent >= 80) grade = 'B';
-    else if (percent >= 70) grade = 'C';
-    else if (percent >= 60) grade = 'D';
-    else grade = 'E';
+  // Hitung grade
+  const percent = Math.round((score / quizQuestions.length) * 100);
+  let grade = 'A';
+  if (percent >= 90) grade = 'A';
+  else if (percent >= 80) grade = 'B';
+  else if (percent >= 70) grade = 'C';
+  else if (percent >= 60) grade = 'D';
+  else grade = 'E';
 
-    // Badge
-    let badge = '';
-    if (percent >= 95) badge = 'Excellent!';
-    else if (avgSeconds < 6) badge = 'Speed Demon!';
-    else if (avgSeconds < 10) badge = 'Quick Thinker!';
-    else badge = 'Good Job!';
+  // Badge
+  let badge = '';
+  if (percent >= 95) badge = 'Excellent!';
+  else if (avgSeconds < 6) badge = 'Speed Demon!';
+  else if (avgSeconds < 10) badge = 'Quick Thinker!';
+  else badge = 'Good Job!';
 
-    // Statistik platform (simulasi, implementasi real: ambil dari localStorage/DB)
-    const leaderboard = JSON.parse(localStorage.getItem('leaderboard') || '[]');
-    const totalUsers = leaderboard.length;
-    const totalQuizzes = leaderboard.length;
-    const avgScore = leaderboard.length ? Math.round(leaderboard.reduce((a, b) => a + b.score, 0) / leaderboard.length / quizQuestions.length * 100) : 0;
-    const activePlayers = leaderboard.filter((v, i, arr) => arr.findIndex(x => x.name === v.name) === i).length;
+  // Statistik platform (simulasi, implementasi real: ambil dari localStorage/DB)
+  const leaderboard = JSON.parse(localStorage.getItem('leaderboard') || '[]');
+  const totalUsers = leaderboard.length;
+  const totalQuizzes = leaderboard.length;
+  const avgScore = leaderboard.length ? Math.round(leaderboard.reduce((a, b) => a + b.score, 0) / leaderboard.length / quizQuestions.length * 100) : 0;
+  const activePlayers = leaderboard.filter((v, i, arr) => arr.findIndex(x => x.name === v.name) === i).length;
 
-    return (
-      <main style={{
-        padding: '32px',
-        textAlign: 'center',
-        background: '#fff',
-        color: '#222',
-        borderRadius: '16px',
-        boxShadow: '0 2px 16px rgba(0,0,0,0.07)',
-        maxWidth: '600px',
-        margin: '0 auto'
-      }}>
-        <div style={{marginBottom: 24}}>
-          <h1 style={{color: '#222', fontWeight: 700}}>Quiz Selesai!</h1>
-          <p style={{fontSize: '1.1rem', color: '#444'}}>Luar biasa! 🎉</p>
-          <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', margin: '24px 0'}}>
-            <div style={{width: 120, height: 120, borderRadius: '50%', border: '8px solid #222', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32, fontWeight: 700, marginBottom: 8}}>
-              {grade}
-            </div>
-            <div style={{fontSize: 20, fontWeight: 600}}>{percent}%</div>
-            <div style={{width: '100%', marginTop: 12}}>
-              <progress value={score} max={quizQuestions.length} style={{width: '100%', accentColor: '#222', background: '#eee', height: 8, borderRadius: 8}} />
-              <div style={{fontSize: 14, color: '#444', marginTop: 4}}>{score} dari {quizQuestions.length} benar</div>
-            </div>
+  return (
+    <main style={{
+      padding: '32px',
+      textAlign: 'center',
+      background: '#fff',
+      color: '#222',
+      borderRadius: '16px',
+      boxShadow: '0 2px 16px rgba(0,0,0,0.07)',
+      maxWidth: '600px',
+      margin: '0 auto'
+    }}>
+      <div style={{marginBottom: 24}}>
+        <h1 style={{color: '#222', fontWeight: 700}}>Quiz Selesai!</h1>
+        <p style={{fontSize: '1.1rem', color: '#444'}}>Luar biasa! 🎉</p>
+        <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', margin: '24px 0'}}>
+          <div style={{width: 120, height: 120, borderRadius: '50%', border: '8px solid #222', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32, fontWeight: 700, marginBottom: 8}}>
+            {grade}
           </div>
-          <div style={{display: 'flex', justifyContent: 'center', gap: 12, margin: '16px 0'}}>
-            <span style={{padding: '8px 18px', background: '#ffe066', borderRadius: 24, fontWeight: 600, color: '#222', fontSize: 16}}>{badge}</span>
+          <div style={{fontSize: 20, fontWeight: 600}}>{percent}%</div>
+          <div style={{width: '100%', marginTop: 12}}>
+            <progress value={score} max={quizQuestions.length} style={{width: '100%', accentColor: '#222', background: '#eee', height: 8, borderRadius: 8}} />
+            <div style={{fontSize: 14, color: '#444', marginTop: 4}}>{score} dari {quizQuestions.length} benar</div>
           </div>
         </div>
-        <div style={{display: 'flex', justifyContent: 'space-between', gap: 12, marginBottom: 24}}>
+        <div style={{display: 'flex', justifyContent: 'center', gap: 12, margin: '16px 0'}}>
+          <span style={{padding: '8px 18px', background: '#ffe066', borderRadius: 24, fontWeight: 600, color: '#222', fontSize: 16}}>{badge}</span>
+        </div>
+      </div>
+      <div style={{display: 'flex', justifyContent: 'space-between', gap: 12, marginBottom: 24}}>
+        <div style={{flex: 1, background: '#f7f7f7', borderRadius: 12, padding: 16}}>
+          <div style={{fontSize: 22, fontWeight: 700}}>{score}/{quizQuestions.length}</div>
+          <div style={{fontSize: 13, color: '#444'}}>Jawaban Benar</div>
+        </div>
+        <div style={{flex: 1, background: '#f7f7f7', borderRadius: 12, padding: 16}}>
+          <div style={{fontSize: 22, fontWeight: 700}}>{Math.floor(totalSeconds/60)}:{(totalSeconds%60).toString().padStart(2,'0')}</div>
+          <div style={{fontSize: 13, color: '#444'}}>Total Waktu</div>
+        </div>
+        <div style={{flex: 1, background: '#f7f7f7', borderRadius: 12, padding: 16}}>
+          <div style={{fontSize: 22, fontWeight: 700}}>{avgSeconds}s</div>
+          <div style={{fontSize: 13, color: '#444'}}>Rata-rata per Soal</div>
+        </div>
+      </div>
+      <div style={{display: 'flex', justifyContent: 'center', gap: 12, marginBottom: 24}}>
+        <button onClick={() => {setStep(-2); setScore(0); setName(""); setCategory('');}}
+          style={{padding: '12px 32px', background: '#222', color: '#fff', borderRadius: '8px', fontWeight: '600', fontSize: '1.1rem', cursor: 'pointer', border: 'none'}}>
+          Ulangi Quiz
+        </button>
+        <button onClick={() => alert('Fitur review jawaban belum tersedia.')}
+          style={{padding: '12px 32px', background: '#eee', color: '#222', borderRadius: '8px', fontWeight: '600', fontSize: '1.1rem', cursor: 'pointer', border: 'none'}}>
+          Review Jawaban
+        </button>
+        <a href="/leaderboard" style={{padding: '12px 32px', background: '#eee', color: '#222', borderRadius: '8px', fontWeight: '600', fontSize: '1.1rem', textDecoration: 'none', display: 'inline-block'}}>Leaderboard</a>
+      </div>
+      <div style={{marginTop: 32, textAlign: 'left'}}>
+        <h3 style={{fontWeight: 700, fontSize: 18, marginBottom: 12}}>Platform Statistics</h3>
+        <div style={{display: 'flex', gap: 16, marginBottom: 16}}>
           <div style={{flex: 1, background: '#f7f7f7', borderRadius: 12, padding: 16}}>
-            <div style={{fontSize: 22, fontWeight: 700}}>{score}/{quizQuestions.length}</div>
-            <div style={{fontSize: 13, color: '#444'}}>Jawaban Benar</div>
+            <div style={{fontSize: 20, fontWeight: 700}}>{totalUsers}</div>
+            <div style={{fontSize: 13, color: '#444'}}>Total Users</div>
           </div>
           <div style={{flex: 1, background: '#f7f7f7', borderRadius: 12, padding: 16}}>
-            <div style={{fontSize: 22, fontWeight: 700}}>{Math.floor(totalSeconds/60)}:{(totalSeconds%60).toString().padStart(2,'0')}</div>
-            <div style={{fontSize: 13, color: '#444'}}>Total Waktu</div>
+            <div style={{fontSize: 20, fontWeight: 700}}>{totalQuizzes}</div>
+            <div style={{fontSize: 13, color: '#444'}}>Quizzes Taken</div>
           </div>
           <div style={{flex: 1, background: '#f7f7f7', borderRadius: 12, padding: 16}}>
-            <div style={{fontSize: 22, fontWeight: 700}}>{avgSeconds}s</div>
-            <div style={{fontSize: 13, color: '#444'}}>Rata-rata per Soal</div>
+            <div style={{fontSize: 20, fontWeight: 700}}>{avgScore}%</div>
+            <div style={{fontSize: 13, color: '#444'}}>Average Score</div>
+          </div>
+          <div style={{flex: 1, background: '#f7f7f7', borderRadius: 12, padding: 16}}>
+            <div style={{fontSize: 20, fontWeight: 700}}>{activePlayers}</div>
+            <div style={{fontSize: 13, color: '#444'}}>Active Players</div>
           </div>
         </div>
-        <div style={{display: 'flex', justifyContent: 'center', gap: 12, marginBottom: 24}}>
-          <button onClick={() => {setStep(-2); setScore(0); setName(""); setCategory('');}}
-            style={{padding: '12px 32px', background: '#222', color: '#fff', borderRadius: '8px', fontWeight: '600', fontSize: '1.1rem', cursor: 'pointer', border: 'none'}}>
-            Ulangi Quiz
-          </button>
-          <button onClick={() => alert('Fitur review jawaban belum tersedia.')}
-            style={{padding: '12px 32px', background: '#eee', color: '#222', borderRadius: '8px', fontWeight: '600', fontSize: '1.1rem', cursor: 'pointer', border: 'none'}}>
-            Review Jawaban
-          </button>
-          <a href="/leaderboard" style={{padding: '12px 32px', background: '#eee', color: '#222', borderRadius: '8px', fontWeight: '600', fontSize: '1.1rem', textDecoration: 'none', display: 'inline-block'}}>Leaderboard</a>
-        </div>
-        <div style={{marginTop: 32, textAlign: 'left'}}>
-          <h3 style={{fontWeight: 700, fontSize: 18, marginBottom: 12}}>Platform Statistics</h3>
-          <div style={{display: 'flex', gap: 16, marginBottom: 16}}>
-            <div style={{flex: 1, background: '#f7f7f7', borderRadius: 12, padding: 16}}>
-              <div style={{fontSize: 20, fontWeight: 700}}>{totalUsers}</div>
-              <div style={{fontSize: 13, color: '#444'}}>Total Users</div>
-            </div>
-            <div style={{flex: 1, background: '#f7f7f7', borderRadius: 12, padding: 16}}>
-              <div style={{fontSize: 20, fontWeight: 700}}>{totalQuizzes}</div>
-              <div style={{fontSize: 13, color: '#444'}}>Quizzes Taken</div>
-            </div>
-            <div style={{flex: 1, background: '#f7f7f7', borderRadius: 12, padding: 16}}>
-              <div style={{fontSize: 20, fontWeight: 700}}>{avgScore}%</div>
-              <div style={{fontSize: 13, color: '#444'}}>Average Score</div>
-            </div>
-            <div style={{flex: 1, background: '#f7f7f7', borderRadius: 12, padding: 16}}>
-              <div style={{fontSize: 20, fontWeight: 700}}>{activePlayers}</div>
-              <div style={{fontSize: 13, color: '#444'}}>Active Players</div>
-            </div>
-          </div>
-        </div>
-      </main>
-    );
-  }
+      </div>
+    </main>
+  );
+}
 
-  // Tampilan soal
+function SoalComponent({ step, quizQuestions, current, selected, showFeedback, handleAnswer, nextQuestion, answerTimes, streak, seconds }) {
   return (
     <main style={{
       padding: '32px',
@@ -341,4 +388,5 @@ import { useState, useEffect, useRef } from 'react';
       )}
     </main>
   );
+}
 
