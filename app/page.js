@@ -22,8 +22,12 @@ export default function Home() {
           <Link href="/quiz?category=saas" className={styles.categoryBtn} style={{background:'#e8f5e9',color:'#43a047',border:'2px solid #43a047',borderRadius:12,padding:'24px 32px',fontWeight:600,fontSize:20,transition:'0.2s',textDecoration:'none',boxShadow:'0 2px 8px rgba(67,160,71,0.08)'}}>SaaS</Link>
         </div>
       </section>
-      <div style={{display:'flex',justifyContent:'center',margin:'32px 0'}}>
-        <Link href="/quiz" className={styles.startBtn} style={{background:'#2196f3',color:'#fff',padding:'18px 48px',borderRadius:16,fontWeight:700,fontSize:22,textDecoration:'none',boxShadow:'0 2px 12px rgba(33,150,243,0.12)',transition:'0.2s'}}>Mulai Quiz</Link>
+      {/* Tombol Mulai Quiz per kategori */}
+      <div style={{display:'flex',justifyContent:'center',margin:'32px 0',gap:24}}>
+        <Link href="/quiz?category=iot" className={styles.startBtn} style={{background:'#2196f3',color:'#fff',padding:'18px 48px',borderRadius:16,fontWeight:700,fontSize:22,textDecoration:'none',boxShadow:'0 2px 12px rgba(33,150,243,0.12)',transition:'0.2s'}}>Mulai Quiz IoT</Link>
+        <Link href="/quiz?category=iaas" className={styles.startBtn} style={{background:'#43a047',color:'#fff',padding:'18px 48px',borderRadius:16,fontWeight:700,fontSize:22,textDecoration:'none',boxShadow:'0 2px 12px rgba(67,160,71,0.12)',transition:'0.2s'}}>Mulai Quiz IaaS</Link>
+        <Link href="/quiz?category=paas" className={styles.startBtn} style={{background:'#2196f3',color:'#fff',padding:'18px 48px',borderRadius:16,fontWeight:700,fontSize:22,textDecoration:'none',boxShadow:'0 2px 12px rgba(33,150,243,0.12)',transition:'0.2s'}}>Mulai Quiz PaaS</Link>
+        <Link href="/quiz?category=saas" className={styles.startBtn} style={{background:'#43a047',color:'#fff',padding:'18px 48px',borderRadius:16,fontWeight:700,fontSize:22,textDecoration:'none',boxShadow:'0 2px 12px rgba(67,160,71,0.12)',transition:'0.2s'}}>Mulai Quiz SaaS</Link>
       </div>
       <section className={styles.statsSection}>
         <h2 style={{color:'#43a047',textAlign:'center',fontWeight:700,fontSize:24}}>Statistik Platform</h2>
@@ -50,10 +54,3 @@ export default function Home() {
   );
 }
 
-function KategoriComponent() {
-  return (
-    <div>
-      {/* Konten Kategori */}
-    </div>
-  );
-}
