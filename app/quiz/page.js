@@ -35,20 +35,21 @@ export default function QuizPage() {
   const handleAnswer = async (idx) => {
     setSelected(idx);
     setShowFeedback(true);
-    // Catat waktu jawab
     setAnswerTimes([...answerTimes, seconds]);
-    // Integrasi API cek jawaban
+    // Jawaban huruf (A/B/C/D)
+    const answerLetter = String.fromCharCode(65 + idx);
     let correct = false;
     try {
       const res = await fetch('/api/cekjawaban', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ category, number: step, answer: idx })
+        body: JSON.stringify({ category, number: step + 1, answer: answerLetter })
       });
       const data = await res.json();
-      correct = data.correct;
+      correct = data.status === 'benar';
     } catch (e) {
-      correct = idx === current.answer;
+      // Fallback: current.answer bisa string/huruf
+      correct = answerLetter === current.answer || idx === current.answer;
     }
     if (correct) {
       setScore(score + 1);
