@@ -16,19 +16,12 @@ export default function Home() {
       <section className={styles.categorySection}>
         <h2 style={{color:'#2196f3',marginBottom:24,textAlign:'center',fontWeight:700,fontSize:26}}>Pilih Kategori Quiz</h2>
         <div className={styles.categories} style={{display:'flex',gap:32,justifyContent:'center',margin:'32px 0'}}>
-          <div className={styles.categoryBtn} style={{background:'#e3f2fd',color:'#2196f3',border:'2px solid #2196f3',borderRadius:12,padding:'24px 32px',fontWeight:600,fontSize:20,transition:'0.2s',boxShadow:'0 2px 8px rgba(33,150,243,0.08)',pointerEvents:'none',userSelect:'none'}}>IoT</div>
-          <div className={styles.categoryBtn} style={{background:'#e8f5e9',color:'#43a047',border:'2px solid #43a047',borderRadius:12,padding:'24px 32px',fontWeight:600,fontSize:20,transition:'0.2s',boxShadow:'0 2px 8px rgba(67,160,71,0.08)',pointerEvents:'none',userSelect:'none'}}>IaaS</div>
-          <div className={styles.categoryBtn} style={{background:'#e3f2fd',color:'#2196f3',border:'2px solid #2196f3',borderRadius:12,padding:'24px 32px',fontWeight:600,fontSize:20,transition:'0.2s',boxShadow:'0 2px 8px rgba(33,150,243,0.08)',pointerEvents:'none',userSelect:'none'}}>PaaS</div>
-          <div className={styles.categoryBtn} style={{background:'#e8f5e9',color:'#43a047',border:'2px solid #43a047',borderRadius:12,padding:'24px 32px',fontWeight:600,fontSize:20,transition:'0.2s',boxShadow:'0 2px 8px rgba(67,160,71,0.08)',pointerEvents:'none',userSelect:'none'}}>SaaS</div>
+          <Link href="/quiz?category=iot" className={styles.categoryBtn} style={{background:'#e3f2fd',color:'#2196f3',border:'2px solid #2196f3',borderRadius:12,padding:'24px 32px',fontWeight:600,fontSize:20,transition:'0.2s',boxShadow:'0 2px 8px rgba(33,150,243,0.08)',textDecoration:'none',cursor:'pointer'}}>IoT</Link>
+          <Link href="/quiz?category=iaas" className={styles.categoryBtn} style={{background:'#e8f5e9',color:'#43a047',border:'2px solid #43a047',borderRadius:12,padding:'24px 32px',fontWeight:600,fontSize:20,transition:'0.2s',boxShadow:'0 2px 8px rgba(67,160,71,0.08)',textDecoration:'none',cursor:'pointer'}}>IaaS</Link>
+          <Link href="/quiz?category=paas" className={styles.categoryBtn} style={{background:'#e3f2fd',color:'#2196f3',border:'2px solid #2196f3',borderRadius:12,padding:'24px 32px',fontWeight:600,fontSize:20,transition:'0.2s',boxShadow:'0 2px 8px rgba(33,150,243,0.08)',textDecoration:'none',cursor:'pointer'}}>PaaS</Link>
+          <Link href="/quiz?category=saas" className={styles.categoryBtn} style={{background:'#e8f5e9',color:'#43a047',border:'2px solid #43a047',borderRadius:12,padding:'24px 32px',fontWeight:600,fontSize:20,transition:'0.2s',boxShadow:'0 2px 8px rgba(67,160,71,0.08)',textDecoration:'none',cursor:'pointer'}}>SaaS</Link>
         </div>
       </section>
-      {/* Tombol Mulai Quiz per kategori */}
-      <div style={{display:'flex',justifyContent:'center',margin:'32px 0',gap:24}}>
-        <Link href="/quiz?category=iot" className={styles.startBtn} style={{background:'#2196f3',color:'#fff',padding:'18px 48px',borderRadius:16,fontWeight:700,fontSize:22,textDecoration:'none',boxShadow:'0 2px 12px rgba(33,150,243,0.12)',transition:'0.2s'}}>Mulai Quiz IoT</Link>
-        <Link href="/quiz?category=iaas" className={styles.startBtn} style={{background:'#43a047',color:'#fff',padding:'18px 48px',borderRadius:16,fontWeight:700,fontSize:22,textDecoration:'none',boxShadow:'0 2px 12px rgba(67,160,71,0.12)',transition:'0.2s'}}>Mulai Quiz IaaS</Link>
-        <Link href="/quiz?category=paas" className={styles.startBtn} style={{background:'#2196f3',color:'#fff',padding:'18px 48px',borderRadius:16,fontWeight:700,fontSize:22,textDecoration:'none',boxShadow:'0 2px 12px rgba(33,150,243,0.12)',transition:'0.2s'}}>Mulai Quiz PaaS</Link>
-        <Link href="/quiz?category=saas" className={styles.startBtn} style={{background:'#43a047',color:'#fff',padding:'18px 48px',borderRadius:16,fontWeight:700,fontSize:22,textDecoration:'none',boxShadow:'0 2px 12px rgba(67,160,71,0.12)',transition:'0.2s'}}>Mulai Quiz SaaS</Link>
-      </div>
       <section className={styles.statsSection}>
         <h2 style={{color:'#43a047',textAlign:'center',fontWeight:700,fontSize:24}}>Statistik Platform</h2>
         <div className={styles.stats} style={{display:'flex',gap:32,justifyContent:'center',margin:'32px 0'}}>
