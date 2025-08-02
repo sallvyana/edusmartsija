@@ -80,6 +80,11 @@ export default function QuizPage() {
     if (step === 0) setSeconds(0);
   }, [step]);
 
+  // Set background body khusus halaman quiz
+  useEffect(() => {
+    document.body.style.background = '#e3f2fd';
+    return () => { document.body.style.background = ''; };
+  }, []);
   return (
     <>
       {step === -1 && (
@@ -282,7 +287,7 @@ function SoalComponent({ step, quizQuestions, current, selected, showFeedback, h
       padding: '32px',
       maxWidth: '500px',
       margin: '0 auto',
-      background: '#e3f2fd',
+      background: 'rgba(255,255,255,0.95)',
       color: '#222',
       borderRadius: '16px',
       boxShadow: '0 2px 16px rgba(33,150,243,0.07)',
@@ -319,7 +324,7 @@ function SoalComponent({ step, quizQuestions, current, selected, showFeedback, h
           <button
             key={idx}
             onClick={() => !showFeedback && setSelected(idx)}
-            disabled={showFeedback}
+            disabled={showFeedback && selected !== idx}
             style={{
               display: 'block',
               width: '100%',
@@ -329,7 +334,7 @@ function SoalComponent({ step, quizQuestions, current, selected, showFeedback, h
               color: selected === idx ? '#2196f3' : '#222',
               borderRadius: '8px',
               border: selected === idx ? '2px solid #2196f3' : '1px solid #bbb',
-              cursor: showFeedback ? 'not-allowed' : 'pointer',
+              cursor: showFeedback && selected !== idx ? 'not-allowed' : 'pointer',
               fontWeight: '600',
               transition: 'background 0.2s, color 0.2s',
               textAlign: 'left',
@@ -343,14 +348,16 @@ function SoalComponent({ step, quizQuestions, current, selected, showFeedback, h
       <div style={{display:'flex',justifyContent:'space-between',marginTop:32}}>
         <button
           onClick={() => setStep(step > 0 ? step - 1 : 0)}
-          disabled={step === 0}
+          disabled={step === 0 || showFeedback}
           style={{padding:'10px 28px',background:step === 0 ? '#eee' : '#43a047',color:step === 0 ? '#bbb' : '#fff',borderRadius:8,border:'none',fontWeight:'600',cursor:step === 0 ? 'not-allowed' : 'pointer',fontSize:16}}
         >Previous</button>
-        <button
-          onClick={() => selected !== null && handleAnswer(selected)}
-          disabled={selected === null}
-          style={{padding:'10px 28px',background:selected === null ? '#eee' : '#2196f3',color:selected === null ? '#bbb' : '#fff',borderRadius:8,border:'none',fontWeight:'600',cursor:selected === null ? 'not-allowed' : 'pointer',fontSize:16}}
-        >Next</button>
+        {!showFeedback && (
+          <button
+            onClick={() => selected !== null && handleAnswer(selected)}
+            disabled={selected === null}
+            style={{padding:'10px 28px',background:selected === null ? '#eee' : '#2196f3',color:selected === null ? '#bbb' : '#fff',borderRadius:8,border:'none',fontWeight:'600',cursor:selected === null ? 'not-allowed' : 'pointer',fontSize:16}}
+          >Jawab</button>
+        )}
       </div>
       {showFeedback && (
         <div style={{marginTop: '18px'}}>
@@ -358,9 +365,9 @@ function SoalComponent({ step, quizQuestions, current, selected, showFeedback, h
             {selected === current.answer ? 'Jawaban Benar!' : 'Jawaban Salah!'}
           </p>
           <small style={{color: '#444'}}>{current.explanation}</small>
-          <div style={{marginTop: '18px'}}>
+          <div style={{marginTop: '18px', textAlign:'right'}}>
             <button onClick={nextQuestion}
-              style={{padding: '10px 28px', background: 'var(--primary)', color: '#fff', borderRadius: '8px', border: 'none', fontWeight: '600', cursor: 'pointer', display:'flex',alignItems:'center',gap:8}}>
+              style={{padding: '10px 28px', background: '#2196f3', color: '#fff', borderRadius: '8px', border: 'none', fontWeight: '600', cursor: 'pointer', display:'inline-flex',alignItems:'center',gap:8}}>
               Selanjutnya
             </button>
           </div>
