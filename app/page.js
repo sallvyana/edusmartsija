@@ -16,10 +16,10 @@ export default function Home() {
       <section className={styles.categorySection}>
         <h2 style={{color:'#2196f3',marginBottom:24,textAlign:'center',fontWeight:700,fontSize:26}}>Pilih Kategori Quiz</h2>
         <div className={styles.categories} style={{display:'flex',gap:32,justifyContent:'center',margin:'32px 0'}}>
-          <Link href="/quiz?category=iot" className={styles.categoryBtn} style={{background:'#e3f2fd',color:'#2196f3',border:'2px solid #2196f3',borderRadius:12,padding:'24px 32px',fontWeight:600,fontSize:20,transition:'0.2s',textDecoration:'none',boxShadow:'0 2px 8px rgba(33,150,243,0.08)'}}>IoT</Link>
-          <Link href="/quiz?category=iaas" className={styles.categoryBtn} style={{background:'#e8f5e9',color:'#43a047',border:'2px solid #43a047',borderRadius:12,padding:'24px 32px',fontWeight:600,fontSize:20,transition:'0.2s',textDecoration:'none',boxShadow:'0 2px 8px rgba(67,160,71,0.08)'}}>IaaS</Link>
-          <Link href="/quiz?category=paas" className={styles.categoryBtn} style={{background:'#e3f2fd',color:'#2196f3',border:'2px solid #2196f3',borderRadius:12,padding:'24px 32px',fontWeight:600,fontSize:20,transition:'0.2s',textDecoration:'none',boxShadow:'0 2px 8px rgba(33,150,243,0.08)'}}>PaaS</Link>
-          <Link href="/quiz?category=saas" className={styles.categoryBtn} style={{background:'#e8f5e9',color:'#43a047',border:'2px solid #43a047',borderRadius:12,padding:'24px 32px',fontWeight:600,fontSize:20,transition:'0.2s',textDecoration:'none',boxShadow:'0 2px 8px rgba(67,160,71,0.08)'}}>SaaS</Link>
+          <div className={styles.categoryBtn} style={{background:'#e3f2fd',color:'#2196f3',border:'2px solid #2196f3',borderRadius:12,padding:'24px 32px',fontWeight:600,fontSize:20,transition:'0.2s',boxShadow:'0 2px 8px rgba(33,150,243,0.08)',pointerEvents:'none',userSelect:'none'}}>IoT</div>
+          <div className={styles.categoryBtn} style={{background:'#e8f5e9',color:'#43a047',border:'2px solid #43a047',borderRadius:12,padding:'24px 32px',fontWeight:600,fontSize:20,transition:'0.2s',boxShadow:'0 2px 8px rgba(67,160,71,0.08)',pointerEvents:'none',userSelect:'none'}}>IaaS</div>
+          <div className={styles.categoryBtn} style={{background:'#e3f2fd',color:'#2196f3',border:'2px solid #2196f3',borderRadius:12,padding:'24px 32px',fontWeight:600,fontSize:20,transition:'0.2s',boxShadow:'0 2px 8px rgba(33,150,243,0.08)',pointerEvents:'none',userSelect:'none'}}>PaaS</div>
+          <div className={styles.categoryBtn} style={{background:'#e8f5e9',color:'#43a047',border:'2px solid #43a047',borderRadius:12,padding:'24px 32px',fontWeight:600,fontSize:20,transition:'0.2s',boxShadow:'0 2px 8px rgba(67,160,71,0.08)',pointerEvents:'none',userSelect:'none'}}>SaaS</div>
         </div>
       </section>
       {/* Tombol Mulai Quiz per kategori */}

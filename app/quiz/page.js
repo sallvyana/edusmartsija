@@ -378,3 +378,5 @@ function SoalComponent({ step, quizQuestions, current, selected, showFeedback, h
   );
 }
 
+console.log('step', step, 'selected', selected, 'showFeedback', showFeedback);
+
