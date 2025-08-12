@@ -324,7 +324,9 @@ function SoalComponent({ step, quizQuestions, current, selected, showFeedback, h
         {current.options.map((opt, idx) => (
           <button
             key={idx}
-            onClick={() => !showFeedback && setSelected(idx)}
+            onClick={() => {
+              if (!showFeedback) setSelected(idx);
+            }}
             disabled={showFeedback && selected !== idx}
             style={{
               display: 'block',
