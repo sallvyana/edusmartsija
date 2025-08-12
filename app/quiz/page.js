@@ -22,18 +22,22 @@ export default function QuizPage() {
   const [answerTimes, setAnswerTimes] = useState([]);
   const timerRef = useRef();
 
+  // Loading state: tunggu sampai category sudah di-set dari URL
+  const [isLoading, setIsLoading] = useState(true);
+
   // Ambil kategori dari URL
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const cat = params.get('category');
       if (cat && questions[cat]) setCategory(cat);
+      setIsLoading(false);
     }
   }, []);
 
   // Timer berjalan saat kuis aktif
   useEffect(() => {
-    if (step >= 0 && step < quizQuestions.length) {
+    if (quizQuestions.length > 0 && step >= 0 && step < quizQuestions.length) {
       timerRef.current = setInterval(() => setSeconds(s => s + 1), 1000);
     } else {
       clearInterval(timerRef.current);
@@ -54,6 +58,15 @@ export default function QuizPage() {
   // Soal sesuai kategori
   const quizQuestions = category && questions[category] ? questions[category] : [];
   const current = quizQuestions[step];
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <main style={{padding: 32, textAlign: 'center'}}>
+        <h2 style={{color: '#2196f3'}}>Memuat quiz...</h2>
+      </main>
+    );
+  }
 
   // Jika kategori tidak valid atau tidak ada soal, tampilkan pesan error
   if (!category) {
@@ -109,6 +122,12 @@ export default function QuizPage() {
     setStep(step + 1);
   };
 
+  // Jika user reload di tengah quiz dan step >= quizQuestions.length, reset ke awal
+  if (step >= quizQuestions.length && quizQuestions.length > 0) {
+    setStep(-1);
+    return null;
+  }
+
   return (
     <>
       {step === -1 && (
@@ -120,19 +139,7 @@ export default function QuizPage() {
           setStep={setStep}
         />
       )}
-      {step >= quizQuestions.length && (
-        <SelesaiComponent
-          name={name}
-          score={score}
-          category={category}
-          quizQuestions={quizQuestions}
-          setStep={setStep}
-          setScore={setScore}
-          setName={setName}
-          setCategory={setCategory}
-        />
-      )}
-      {step >= 0 && step < quizQuestions.length && current && (
+      {step >= 0 && step < quizQuestions.length && current && Array.isArray(current.options) && (
         <SoalComponent
           step={step}
           quizQuestions={quizQuestions}
@@ -145,6 +152,18 @@ export default function QuizPage() {
           answerTimes={answerTimes}
           streak={streak}
           seconds={seconds}
+        />
+      )}
+      {step >= quizQuestions.length && quizQuestions.length > 0 && (
+        <SelesaiComponent
+          name={name}
+          score={score}
+          category={category}
+          quizQuestions={quizQuestions}
+          setStep={setStep}
+          setScore={setScore}
+          setName={setName}
+          setCategory={setCategory}
         />
       )}
     </>
