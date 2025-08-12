@@ -29,8 +29,28 @@ export default function QuizPage() {
     }
   }, []);
   // Soal sesuai kategori
-  const quizQuestions = category ? questions[category] : [];
+  const quizQuestions = category && questions[category] ? questions[category] : [];
   const current = quizQuestions[step];
+
+  // Jika kategori tidak valid atau tidak ada soal, tampilkan pesan error
+  if (!category) {
+    return (
+      <main style={{padding: 32, textAlign: 'center'}}>
+        <h2 style={{color: '#f44336'}}>Kategori tidak ditemukan</h2>
+        <p>Silakan kembali ke halaman utama dan pilih kategori quiz.</p>
+        <a href="/" style={{color: '#2196f3', textDecoration: 'underline'}}>Kembali ke Home</a>
+      </main>
+    );
+  }
+  if (quizQuestions.length === 0) {
+    return (
+      <main style={{padding: 32, textAlign: 'center'}}>
+        <h2 style={{color: '#f44336'}}>Soal tidak ditemukan</h2>
+        <p>Tidak ada soal untuk kategori ini. Silakan pilih kategori lain.</p>
+        <a href="/" style={{color: '#2196f3', textDecoration: 'underline'}}>Kembali ke Home</a>
+      </main>
+    );
+  }
 
   const handleAnswer = async (idx) => {
     setSelected(idx);
