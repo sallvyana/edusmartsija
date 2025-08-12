@@ -1,6 +1,7 @@
 "use client";
 
 import Image from 'next/image';
+import Link from 'next/link';
 import { questions } from './questions';
 import { useState, useEffect, useRef } from 'react';
 
@@ -28,6 +29,27 @@ export default function QuizPage() {
       if (cat && questions[cat]) setCategory(cat);
     }
   }, []);
+
+  // Timer berjalan saat kuis aktif
+  useEffect(() => {
+    if (step >= 0 && step < quizQuestions.length) {
+      timerRef.current = setInterval(() => setSeconds(s => s + 1), 1000);
+    } else {
+      clearInterval(timerRef.current);
+    }
+    return () => clearInterval(timerRef.current);
+  }, [step, quizQuestions.length]);
+
+  // Reset timer saat mulai ulang kuis
+  useEffect(() => {
+    if (step === 0) setSeconds(0);
+  }, [step]);
+
+  // Set background body khusus halaman quiz
+  useEffect(() => {
+    document.body.style.background = '#e3f2fd';
+    return () => { document.body.style.background = ''; };
+  }, []);
   // Soal sesuai kategori
   const quizQuestions = category && questions[category] ? questions[category] : [];
   const current = quizQuestions[step];
@@ -38,7 +60,7 @@ export default function QuizPage() {
       <main style={{padding: 32, textAlign: 'center'}}>
         <h2 style={{color: '#f44336'}}>Kategori tidak ditemukan</h2>
         <p>Silakan kembali ke halaman utama dan pilih kategori quiz.</p>
-        <a href="/" style={{color: '#2196f3', textDecoration: 'underline'}}>Kembali ke Home</a>
+        <Link href="/" style={{color: '#2196f3', textDecoration: 'underline'}}>Kembali ke Home</Link>
       </main>
     );
   }
@@ -47,7 +69,7 @@ export default function QuizPage() {
       <main style={{padding: 32, textAlign: 'center'}}>
         <h2 style={{color: '#f44336'}}>Soal tidak ditemukan</h2>
         <p>Tidak ada soal untuk kategori ini. Silakan pilih kategori lain.</p>
-        <a href="/" style={{color: '#2196f3', textDecoration: 'underline'}}>Kembali ke Home</a>
+        <Link href="/" style={{color: '#2196f3', textDecoration: 'underline'}}>Kembali ke Home</Link>
       </main>
     );
   }
@@ -86,26 +108,7 @@ export default function QuizPage() {
     setStep(step + 1);
   };
 
-  // Timer berjalan saat kuis aktif
-  useEffect(() => {
-    if (step >= 0 && step < quizQuestions.length) {
-      timerRef.current = setInterval(() => setSeconds(s => s + 1), 1000);
-    } else {
-      clearInterval(timerRef.current);
-    }
-    return () => clearInterval(timerRef.current);
-  }, [step, quizQuestions.length]);
-
-  // Reset timer saat mulai ulang kuis
-  useEffect(() => {
-    if (step === 0) setSeconds(0);
-  }, [step]);
-
-  // Set background body khusus halaman quiz
-  useEffect(() => {
-    document.body.style.background = '#e3f2fd';
-    return () => { document.body.style.background = ''; };
-  }, []);
+  // ...existing code...
   return (
     <>
       {step === -1 && (
