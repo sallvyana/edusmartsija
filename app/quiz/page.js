@@ -59,8 +59,13 @@ export default function QuizPage() {
     return () => { document.body.style.background = ''; };
   }, []);
   // Soal sesuai kategori
-  const quizQuestions = category && questions[category] ? questions[category] : [];
-  const current = quizQuestions[step];
+  let quizQuestions = [];
+  try {
+    quizQuestions = category && questions[category] ? questions[category] : [];
+  } catch (e) {
+    quizQuestions = [];
+  }
+  const current = (step >= 0 && step < quizQuestions.length && Array.isArray(quizQuestions)) ? quizQuestions[step] : null;
 
   // Loading state
   if (isLoading) {
@@ -81,7 +86,7 @@ export default function QuizPage() {
       </main>
     );
   }
-  if (quizQuestions.length === 0) {
+  if (!Array.isArray(quizQuestions) || quizQuestions.length === 0) {
     return (
       <main style={{padding: 32, textAlign: 'center'}}>
         <h2 style={{color: '#f44336'}}>Soal tidak ditemukan</h2>
@@ -142,21 +147,21 @@ export default function QuizPage() {
           setStep={setStep}
         />
       )}
-      {step >= 0 && step < quizQuestions.length && current && Array.isArray(current.options) && (
-        <SoalComponent
-          step={step}
-          quizQuestions={quizQuestions}
-          current={current}
-          selected={selected}
-          setSelected={setSelected}
-          showFeedback={showFeedback}
-          handleAnswer={handleAnswer}
-          nextQuestion={nextQuestion}
-          answerTimes={answerTimes}
-          streak={streak}
-          seconds={seconds}
-        />
-      )}
+  {step >= 0 && step < quizQuestions.length && current && Array.isArray(current.options) ? (
+    <SoalComponent
+      step={step}
+      quizQuestions={quizQuestions}
+      current={current}
+      selected={selected}
+      setSelected={setSelected}
+      showFeedback={showFeedback}
+      handleAnswer={handleAnswer}
+      nextQuestion={nextQuestion}
+      answerTimes={answerTimes}
+      streak={streak}
+      seconds={seconds}
+    />
+  ) : null}
       {step >= quizQuestions.length && quizQuestions.length > 0 && (
         <SelesaiComponent
           name={name}
