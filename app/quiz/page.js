@@ -1,18 +1,13 @@
 "use client";
 
-
-
 import Image from 'next/image';
-import Link from 'next/link';
 import { questions } from './questions';
 import { useState, useEffect, useRef } from 'react';
 
 export default function QuizPage() {
-  const [step, setStep] = useState(-1); // -1: input nama, 0+: soal
-
-
   // Ambil kategori dari query params
   const [category, setCategory] = useState('');
+  const [step, setStep] = useState(-1); // -1: input nama, 0+: soal
   const [selected, setSelected] = useState(null);
   const [showFeedback, setShowFeedback] = useState(false);
   const [score, setScore] = useState(0);
@@ -25,56 +20,17 @@ export default function QuizPage() {
   const [answerTimes, setAnswerTimes] = useState([]);
   const timerRef = useRef();
 
-  // Loading state: tunggu sampai category sudah di-set dari URL
-  const [isLoading, setIsLoading] = useState(true);
-
   // Ambil kategori dari URL
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const cat = params.get('category');
       if (cat && questions[cat]) setCategory(cat);
-      setIsLoading(false);
     }
-  }, []);
-
-  // Timer berjalan saat kuis aktif
-  useEffect(() => {
-    if (quizQuestions.length > 0 && step >= 0 && step < quizQuestions.length) {
-      timerRef.current = setInterval(() => setSeconds(s => s + 1), 1000);
-    } else {
-      clearInterval(timerRef.current);
-    }
-    return () => clearInterval(timerRef.current);
-  }, [step, quizQuestions.length]);
-
-  // Reset timer saat mulai ulang kuis
-  useEffect(() => {
-    if (step === 0) setSeconds(0);
-  }, [step]);
-
-  // Set background body khusus halaman quiz
-  useEffect(() => {
-    document.body.style.background = '#e3f2fd';
-    return () => { document.body.style.background = ''; };
   }, []);
   // Soal sesuai kategori
-  let quizQuestions = [];
-  try {
-    quizQuestions = category && questions[category] ? questions[category] : [];
-  } catch (e) {
-    quizQuestions = [];
-  }
-  const current = (step >= 0 && step < quizQuestions.length && Array.isArray(quizQuestions)) ? quizQuestions[step] : null;
-
-  // Loading state
-  if (isLoading) {
-    return (
-      <main style={{padding: 32, textAlign: 'center'}}>
-        <h2 style={{color: '#2196f3'}}>Memuat quiz...</h2>
-      </main>
-    );
-  }
+  const quizQuestions = category && questions[category] ? questions[category] : [];
+  const current = quizQuestions[step];
 
   // Jika kategori tidak valid atau tidak ada soal, tampilkan pesan error
   if (!category) {
@@ -82,16 +38,16 @@ export default function QuizPage() {
       <main style={{padding: 32, textAlign: 'center'}}>
         <h2 style={{color: '#f44336'}}>Kategori tidak ditemukan</h2>
         <p>Silakan kembali ke halaman utama dan pilih kategori quiz.</p>
-        <Link href="/" style={{color: '#2196f3', textDecoration: 'underline'}}>Kembali ke Home</Link>
+        <a href="/" style={{color: '#2196f3', textDecoration: 'underline'}}>Kembali ke Home</a>
       </main>
     );
   }
-  if (!Array.isArray(quizQuestions) || quizQuestions.length === 0) {
+  if (quizQuestions.length === 0) {
     return (
       <main style={{padding: 32, textAlign: 'center'}}>
         <h2 style={{color: '#f44336'}}>Soal tidak ditemukan</h2>
         <p>Tidak ada soal untuk kategori ini. Silakan pilih kategori lain.</p>
-        <Link href="/" style={{color: '#2196f3', textDecoration: 'underline'}}>Kembali ke Home</Link>
+        <a href="/" style={{color: '#2196f3', textDecoration: 'underline'}}>Kembali ke Home</a>
       </main>
     );
   }
@@ -130,12 +86,26 @@ export default function QuizPage() {
     setStep(step + 1);
   };
 
-  // Jika user reload di tengah quiz dan step >= quizQuestions.length, reset ke awal
-  if (step >= quizQuestions.length && quizQuestions.length > 0) {
-    setStep(-1);
-    return null;
-  }
+  // Timer berjalan saat kuis aktif
+  useEffect(() => {
+    if (step >= 0 && step < quizQuestions.length) {
+      timerRef.current = setInterval(() => setSeconds(s => s + 1), 1000);
+    } else {
+      clearInterval(timerRef.current);
+    }
+    return () => clearInterval(timerRef.current);
+  }, [step, quizQuestions.length]);
 
+  // Reset timer saat mulai ulang kuis
+  useEffect(() => {
+    if (step === 0) setSeconds(0);
+  }, [step]);
+
+  // Set background body khusus halaman quiz
+  useEffect(() => {
+    document.body.style.background = '#e3f2fd';
+    return () => { document.body.style.background = ''; };
+  }, []);
   return (
     <>
       {step === -1 && (
@@ -147,22 +117,7 @@ export default function QuizPage() {
           setStep={setStep}
         />
       )}
-  {step >= 0 && step < quizQuestions.length && current && Array.isArray(current.options) ? (
-    <SoalComponent
-      step={step}
-      quizQuestions={quizQuestions}
-      current={current}
-      selected={selected}
-      setSelected={setSelected}
-      showFeedback={showFeedback}
-      handleAnswer={handleAnswer}
-      nextQuestion={nextQuestion}
-      answerTimes={answerTimes}
-      streak={streak}
-      seconds={seconds}
-    />
-  ) : null}
-      {step >= quizQuestions.length && quizQuestions.length > 0 && (
+      {step >= quizQuestions.length && (
         <SelesaiComponent
           name={name}
           score={score}
@@ -172,6 +127,21 @@ export default function QuizPage() {
           setScore={setScore}
           setName={setName}
           setCategory={setCategory}
+        />
+      )}
+      {step >= 0 && step < quizQuestions.length && (
+        <SoalComponent
+          step={step}
+          quizQuestions={quizQuestions}
+          current={current}
+          selected={selected}
+          setSelected={setSelected}
+          showFeedback={showFeedback}
+          handleAnswer={handleAnswer}
+          nextQuestion={nextQuestion}
+          answerTimes={answerTimes}
+          streak={streak}
+          seconds={seconds}
         />
       )}
     </>
