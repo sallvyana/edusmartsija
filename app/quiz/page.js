@@ -132,7 +132,7 @@ export default function QuizPage() {
           setCategory={setCategory}
         />
       )}
-      {step >= 0 && step < quizQuestions.length && (
+      {step >= 0 && step < quizQuestions.length && current && (
         <SoalComponent
           step={step}
           quizQuestions={quizQuestions}
