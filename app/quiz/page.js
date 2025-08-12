@@ -327,7 +327,7 @@ function SoalComponent({ step, quizQuestions, current, selected, showFeedback, h
             onClick={() => {
               if (!showFeedback) setSelected(idx);
             }}
-            disabled={showFeedback && selected !== idx}
+            disabled={showFeedback}
             style={{
               display: 'block',
               width: '100%',
@@ -337,7 +337,7 @@ function SoalComponent({ step, quizQuestions, current, selected, showFeedback, h
               color: selected === idx ? '#2196f3' : '#222',
               borderRadius: '8px',
               border: selected === idx ? '2px solid #2196f3' : '1px solid #bbb',
-              cursor: showFeedback && selected !== idx ? 'not-allowed' : 'pointer',
+              cursor: showFeedback ? 'not-allowed' : 'pointer',
               fontWeight: '600',
               transition: 'background 0.2s, color 0.2s',
               textAlign: 'left',
