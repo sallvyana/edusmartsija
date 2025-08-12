@@ -132,6 +132,7 @@ export default function QuizPage() {
       {step >= 0 && step < quizQuestions.length && (
         <SoalComponent
           step={step}
+          setStep={setStep} // ⬅️ ini ditambahkan
           quizQuestions={quizQuestions}
           current={current}
           selected={selected}
@@ -302,7 +303,7 @@ function SelesaiComponent({ name, score, category, quizQuestions, setStep, setSc
   );
 }
 
-function SoalComponent({ step, quizQuestions, current, selected, showFeedback, handleAnswer, nextQuestion, answerTimes, streak, seconds }) {
+function SoalComponent({ step, setStep, quizQuestions, current, selected, showFeedback, handleAnswer, nextQuestion, answerTimes, streak, seconds }) {
   return (
     <main style={{
       padding: '32px',
@@ -323,7 +324,9 @@ function SoalComponent({ step, quizQuestions, current, selected, showFeedback, h
         <div style={{fontWeight: 600, fontSize: 15}}>{Math.floor(seconds/60)}:{(seconds%60).toString().padStart(2,'0')}</div>
         <div style={{fontSize: 13, marginTop: 8}}>Rata-rata</div>
         <div style={{fontWeight: 600, fontSize: 15}}>
-          {answerTimes.length > 0 ? `${Math.round(answerTimes[answerTimes.length-1]/(step+1))}s/soal` : '0s/soal'}
+          {answerTimes.length > 0
+            ? `${Math.round(answerTimes.reduce((a,b) => a+b, 0) / answerTimes.length)}s/soal`
+            : '0s/soal'}
         </div>
         <div style={{fontSize: 13, marginTop: 8}}>Streak</div>
         <div style={{fontWeight: 600, fontSize: 15}}>{streak} berturut-turut</div>
