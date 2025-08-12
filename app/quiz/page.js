@@ -5,8 +5,9 @@ import Link from 'next/link';
 import { questions } from './questions';
 import { useState, useEffect, useRef } from 'react';
 
+
 export default function QuizPage() {
-  // Ambil kategori dari query params
+  // State
   const [category, setCategory] = useState('');
   const [step, setStep] = useState(-1); // -1: input nama, 0+: soal
   const [selected, setSelected] = useState(null);
@@ -14,12 +15,15 @@ export default function QuizPage() {
   const [score, setScore] = useState(0);
   const [name, setName] = useState("");
   const [error, setError] = useState("");
-  // Timer dan statistik live
   const [seconds, setSeconds] = useState(0);
   const [streak, setStreak] = useState(0);
   const [streakMax, setStreakMax] = useState(0);
   const [answerTimes, setAnswerTimes] = useState([]);
   const timerRef = useRef();
+
+  // Soal sesuai kategori
+  const quizQuestions = category && questions[category] ? questions[category] : [];
+  const current = quizQuestions[step];
 
   // Ambil kategori dari URL
   useEffect(() => {
@@ -50,9 +54,6 @@ export default function QuizPage() {
     document.body.style.background = '#e3f2fd';
     return () => { document.body.style.background = ''; };
   }, []);
-  // Soal sesuai kategori
-  const quizQuestions = category && questions[category] ? questions[category] : [];
-  const current = quizQuestions[step];
 
   // Jika kategori tidak valid atau tidak ada soal, tampilkan pesan error
   if (!category) {
