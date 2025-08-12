@@ -1,15 +1,18 @@
 "use client";
 
 
+
 import Image from 'next/image';
 import Link from 'next/link';
 import { questions } from './questions';
 import { useState, useEffect, useRef } from 'react';
 
 export default function QuizPage() {
+  const [step, setStep] = useState(-1); // -1: input nama, 0+: soal
+
+
   // Ambil kategori dari query params
   const [category, setCategory] = useState('');
-  const [step, setStep] = useState(-1); // -1: input nama, 0+: soal
   const [selected, setSelected] = useState(null);
   const [showFeedback, setShowFeedback] = useState(false);
   const [score, setScore] = useState(0);
