@@ -109,7 +109,6 @@ export default function QuizPage() {
     setStep(step + 1);
   };
 
-  // ...existing code...
   return (
     <>
       {step === -1 && (
@@ -136,11 +135,11 @@ export default function QuizPage() {
       {step >= 0 && step < quizQuestions.length && (
         <SoalComponent
           step={step}
-          setStep={setStep} // ⬅️ ini ditambahkan
+          setStep={setStep}
           quizQuestions={quizQuestions}
           current={current}
           selected={selected}
-          setSelected={setSelected}
+          setSelected={setSelected} // ⬅️ Tambahkan ini!
           showFeedback={showFeedback}
           handleAnswer={handleAnswer}
           nextQuestion={nextQuestion}
@@ -307,7 +306,7 @@ function SelesaiComponent({ name, score, category, quizQuestions, setStep, setSc
   );
 }
 
-function SoalComponent({ step, setStep, quizQuestions, current, selected, showFeedback, handleAnswer, nextQuestion, answerTimes, streak, seconds }) {
+function SoalComponent({ step, setStep, quizQuestions, current, selected, setSelected, showFeedback, handleAnswer, nextQuestion, answerTimes, streak, seconds }) {
   return (
     <main style={{
       padding: '32px',
@@ -352,6 +351,7 @@ function SoalComponent({ step, setStep, quizQuestions, current, selected, showFe
           <button
             key={idx}
             onClick={() => {
+              console.log('Klik pilihan', idx, showFeedback);
               if (!showFeedback) setSelected(idx);
             }}
             disabled={showFeedback}
@@ -406,5 +406,4 @@ function SoalComponent({ step, setStep, quizQuestions, current, selected, showFe
     </main>
   );
 }
-
 
