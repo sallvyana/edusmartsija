@@ -1,9 +1,11 @@
 "use client";
 
+
 import Image from 'next/image';
 import Link from 'next/link';
 import { questions } from './questions';
 import { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 
 export default function QuizPage() {
@@ -110,45 +112,69 @@ export default function QuizPage() {
   };
 
   return (
-    <>
+    <AnimatePresence mode="wait">
       {step === -1 && (
-        <NamaComponent
-          name={name}
-          setName={setName}
-          error={error}
-          setError={setError}
-          setStep={setStep}
-        />
+        <motion.div
+          key="nama"
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -40 }}
+          transition={{ duration: 0.4, type: 'spring' }}
+        >
+          <NamaComponent
+            name={name}
+            setName={setName}
+            error={error}
+            setError={setError}
+            setStep={setStep}
+          />
+        </motion.div>
       )}
       {step >= quizQuestions.length && (
-        <SelesaiComponent
-          name={name}
-          score={score}
-          category={category}
-          quizQuestions={quizQuestions}
-          setStep={setStep}
-          setScore={setScore}
-          setName={setName}
-          setCategory={setCategory}
-        />
+        <motion.div
+          key="selesai"
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -40 }}
+          transition={{ duration: 0.4, type: 'spring' }}
+        >
+          <SelesaiComponent
+            name={name}
+            score={score}
+            category={category}
+            quizQuestions={quizQuestions}
+            setStep={setStep}
+            setScore={setScore}
+            setName={setName}
+            setCategory={setCategory}
+          />
+        </motion.div>
       )}
       {step >= 0 && step < quizQuestions.length && (
-        <SoalComponent
-          step={step}
-          setStep={setStep}
-          quizQuestions={quizQuestions}
-          current={current}
-          selected={selected}
-          setSelected={setSelected} // ⬅️ Tambahkan ini!
-          showFeedback={showFeedback}
-          handleAnswer={handleAnswer}
-          nextQuestion={nextQuestion}
-          answerTimes={answerTimes}
-          streak={streak}
-          seconds={seconds}
-        />
+        <motion.div
+          key={`soal-${step}`}
+          initial={{ opacity: 0, scale: 0.96 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.96 }}
+          transition={{ duration: 0.35, type: 'spring' }}
+        >
+          <SoalComponent
+            step={step}
+            setStep={setStep}
+            quizQuestions={quizQuestions}
+            current={current}
+            selected={selected}
+            setSelected={setSelected}
+            showFeedback={showFeedback}
+            handleAnswer={handleAnswer}
+            nextQuestion={nextQuestion}
+            answerTimes={answerTimes}
+            streak={streak}
+            seconds={seconds}
+          />
+        </motion.div>
       )}
-    </>
+    </AnimatePresence>
   );
 }
 
@@ -306,18 +332,25 @@ function SelesaiComponent({ name, score, category, quizQuestions, setStep, setSc
   );
 }
 
+
 function SoalComponent({ step, setStep, quizQuestions, current, selected, setSelected, showFeedback, handleAnswer, nextQuestion, answerTimes, streak, seconds }) {
   return (
-    <main style={{
-      padding: '32px',
-      maxWidth: '500px',
-      margin: '0 auto',
-      background: 'rgba(255,255,255,0.95)',
-      color: '#222',
-      borderRadius: '16px',
-      boxShadow: '0 2px 16px rgba(33,150,243,0.07)',
-      position: 'relative'
-    }}>
+    <motion.main
+      initial={{ opacity: 0, y: 30 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -30 }}
+      transition={{ duration: 0.35, type: 'spring' }}
+      style={{
+        padding: '32px',
+        maxWidth: '500px',
+        margin: '0 auto',
+        background: 'rgba(255,255,255,0.95)',
+        color: '#222',
+        borderRadius: '16px',
+        boxShadow: '0 2px 16px rgba(33,150,243,0.07)',
+        position: 'relative'
+      }}
+    >
       {/* Statistik Live */}
       <div style={{position: 'fixed', left: 16, bottom: 16, background: '#fff', borderRadius: 16, boxShadow: '0 2px 12px rgba(0,0,0,0.07)', padding: 18, minWidth: 120, zIndex: 10}}>
         <div style={{fontWeight: 700, fontSize: 15, marginBottom: 8}}>Statistik Live</div>
@@ -348,10 +381,11 @@ function SoalComponent({ step, setStep, quizQuestions, current, selected, setSel
       </div>
       <div>
         {current.options.map((opt, idx) => (
-          <button
+          <motion.button
             key={idx}
+            whileTap={{ scale: 0.97 }}
+            whileHover={!showFeedback ? { scale: 1.03, boxShadow: '0 2px 12px #2196f355' } : {}}
             onClick={() => {
-              console.log('Klik pilihan', idx, showFeedback);
               if (!showFeedback) setSelected(idx);
             }}
             disabled={showFeedback}
@@ -372,38 +406,52 @@ function SoalComponent({ step, setStep, quizQuestions, current, selected, setSel
             }}
           >
             <span style={{fontWeight: 700, marginRight: 12}}>{String.fromCharCode(65 + idx)}</span> {opt}
-          </button>
+          </motion.button>
         ))}
       </div>
       <div style={{display:'flex',justifyContent:'space-between',marginTop:32}}>
-        <button
+        <motion.button
+          whileTap={{ scale: 0.96 }}
+          whileHover={step !== 0 && !showFeedback ? { scale: 1.04 } : {}}
           onClick={() => setStep(step > 0 ? step - 1 : 0)}
           disabled={step === 0 || showFeedback}
           style={{padding:'10px 28px',background:step === 0 ? '#eee' : '#43a047',color:step === 0 ? '#bbb' : '#fff',borderRadius:8,border:'none',fontWeight:'600',cursor:step === 0 ? 'not-allowed' : 'pointer',fontSize:16}}
-        >Previous</button>
+        >Previous</motion.button>
         {!showFeedback && (
-          <button
+          <motion.button
+            whileTap={{ scale: 0.96 }}
+            whileHover={selected !== null ? { scale: 1.04 } : {}}
             onClick={() => selected !== null && handleAnswer(selected)}
             disabled={selected === null}
             style={{padding:'10px 28px',background:selected === null ? '#eee' : '#2196f3',color:selected === null ? '#bbb' : '#fff',borderRadius:8,border:'none',fontWeight:'600',cursor:selected === null ? 'not-allowed' : 'pointer',fontSize:16}}
-          >Jawab</button>
+          >Jawab</motion.button>
         )}
       </div>
       {showFeedback && (
-        <div style={{marginTop: '18px'}}>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          transition={{ duration: 0.3 }}
+          style={{marginTop: '18px'}}
+        >
           <p style={{color: selected === current.answer ? '#222' : '#f44336', fontWeight: 'bold'}}>
             {selected === current.answer ? 'Jawaban Benar!' : 'Jawaban Salah!'}
           </p>
           <small style={{color: '#444'}}>{current.explanation}</small>
           <div style={{marginTop: '18px', textAlign:'right'}}>
-            <button onClick={nextQuestion}
-              style={{padding: '10px 28px', background: '#2196f3', color: '#fff', borderRadius: '8px', border: 'none', fontWeight: '600', cursor: 'pointer', display:'inline-flex',alignItems:'center',gap:8}}>
+            <motion.button
+              whileTap={{ scale: 0.96 }}
+              whileHover={{ scale: 1.04 }}
+              onClick={nextQuestion}
+              style={{padding: '10px 28px', background: '#2196f3', color: '#fff', borderRadius: '8px', border: 'none', fontWeight: '600', cursor: 'pointer', display:'inline-flex',alignItems:'center',gap:8}}
+            >
               Selanjutnya
-            </button>
+            </motion.button>
           </div>
-        </div>
+        </motion.div>
       )}
-    </main>
+    </motion.main>
   );
 }
 
