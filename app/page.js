@@ -3,6 +3,7 @@ import Link from "next/link";
 import styles from "./page.module.css";
 import { motion } from "framer-motion";
 
+export default function Page() {
   return (
     <motion.main
       className={styles.main}
