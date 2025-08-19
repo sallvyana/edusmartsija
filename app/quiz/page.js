@@ -5,9 +5,7 @@ import Link from 'next/link';
 import { questions } from './questions';
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabaseClient";
-
 
 export default function QuizPage() {
   // State
@@ -27,7 +25,6 @@ export default function QuizPage() {
   const [result, setResult] = useState(null);
   const [leaderboard, setLeaderboard] = useState([]);
   const [username, setUsername] = useState("");
-  const [category, setCategory] = useState("iot");
   const [number, setNumber] = useState(1);
   const [jawaban, setJawaban] = useState("");
   const [hasil, setHasil] = useState(null);
@@ -118,6 +115,27 @@ export default function QuizPage() {
     setSelected(null);
     setShowFeedback(false);
     setStep(step + 1);
+  };
+
+  // Handle submit function
+  const handleSubmit = async () => {
+    try {
+      const res = await fetch("/api/cekjawaban", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username,
+          category,
+          number,
+          jawaban,
+        }),
+      });
+
+      const data = await res.json();
+      setHasil(data);
+    } catch (err) {
+      console.error("Error submit:", err);
+    }
   };
 
   return (
@@ -514,73 +532,6 @@ function SelesaiComponent({ name, score, category, quizQuestions, setStep, setSc
   );
 }
 
-//buat tombolsubmit 
-const handleSubmit = async () => {
-    try {
-      const res = await fetch("/api/cekjawaban", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          username,
-          category,
-          number,
-          jawaban,
-        }),
-      });
-
-      const data = await res.json();
-      setHasil(data);
-    } catch (err) {
-      console.error("Error submit:", err);
-    }
-  };
-  
-  return (
-    <main style={{ padding: 32 }}>
-      <h1>Quiz</h1>
-      <div>
-        <label>
-          Jawaban Kamu:
-          <input
-            type="text"
-            value={answer}
-            onChange={(e) => setAnswer(e.target.value)}
-            style={{ marginLeft: 8 }}
-          />
-        </label>
-        <button onClick={handleSubmit} style={{ marginLeft: 12 }}>
-          Submit
-        </button>
-      </div>
-
-      {result && (
-        <p style={{ marginTop: 16 }}>
-          Hasil: <b>{result.status}</b> ({result.message})
-        </p>
-      )}
-
-      <h2 style={{ marginTop: 32 }}>Leaderboard</h2>
-      <table border="1" cellPadding="8">
-        <thead>
-          <tr>
-            <th>Rank</th>
-            <th>Nama</th>
-            <th>Skor</th>
-          </tr>
-        </thead>
-        <tbody>
-          {leaderboard.map((row, idx) => (
-            <tr key={row.id}>
-              <td>{idx + 1}</td>
-              <td>{row.username}</td>
-              <td>{row.score}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </main>
-  );
-
 function SoalComponent({ step, setStep, quizQuestions, current, selected, setSelected, showFeedback, handleAnswer, nextQuestion, answerTimes, streak, seconds }) {
   return (
     <motion.main
@@ -702,4 +653,3 @@ function SoalComponent({ step, setStep, quizQuestions, current, selected, setSel
     </motion.main>
   );
 }
-
