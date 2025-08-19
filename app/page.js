@@ -5,7 +5,7 @@ import Link from "next/link";
 import styles from "./page.module.css";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import { supabase } from "./lib/supabaseClient";
+import { supabase } from "../lib/supabaseClient";
 
 export default function Page() {
   // Real-time stats dari Supabase

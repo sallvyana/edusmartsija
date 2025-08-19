@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { questions } from './questions'; // FIXED: Ubah dari './questions' menjadi sama dengan nama file
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { supabase } from "@/lib/supabaseClient";
+import { supabase } from '@/lib/supabaseClient'
 
 export default function QuizPage() {
   // State
