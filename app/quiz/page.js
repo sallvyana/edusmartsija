@@ -1,11 +1,12 @@
 "use client";
 
-
 import Image from 'next/image';
 import Link from 'next/link';
 import { questions } from './questions';
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabaseClient";
 
 
 export default function QuizPage() {
@@ -22,6 +23,14 @@ export default function QuizPage() {
   const [streakMax, setStreakMax] = useState(0);
   const [answerTimes, setAnswerTimes] = useState([]);
   const timerRef = useRef();
+  const [answer, setAnswer] = useState("");
+  const [result, setResult] = useState(null);
+  const [leaderboard, setLeaderboard] = useState([]);
+  const [username, setUsername] = useState("");
+  const [category, setCategory] = useState("iot");
+  const [number, setNumber] = useState(1);
+  const [jawaban, setJawaban] = useState("");
+  const [hasil, setHasil] = useState(null);
 
   // Soal sesuai kategori
   const quizQuestions = category && questions[category] ? questions[category] : [];
@@ -216,115 +225,288 @@ function NamaComponent({ name, setName, error, setError, setStep }) {
 }
 
 function SelesaiComponent({ name, score, category, quizQuestions, setStep, setScore, setName, setCategory }) {
-  // Simpan skor ke localStorage
+  // ⬇️ STATUS SIMPAN KE SUPABASE
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
+  const [savedId, setSavedId] = useState(null);
+  const savedOnce = useRef(false); // cegah double-insert (StrictMode dll)
+
+  // ⬇️ SIMPAN SCORE SEKALI SAJA SAAT HALAMAN "SELESAI" MUNCUL
   useEffect(() => {
-    if (name) {
-      const data = localStorage.getItem('leaderboard');
-      let arr = [];
-      if (data) arr = JSON.parse(data);
-      arr.push({ name, score, category });
-      localStorage.setItem('leaderboard', JSON.stringify(arr));
-    }
+    const save = async () => {
+      if (!name || savedOnce.current) return;
+      setSaving(true);
+      setSaveError("");
+
+      const payload = {
+        name,
+        category,
+        score,
+        total: quizQuestions.length,
+        // kamu boleh tambahkan kolom lain jika tabelnya punya, misal:
+        // took_seconds: totalSeconds, etc.
+      };
+
+      const { data, error } = await supabase
+        .from("scores")
+        .insert(payload)
+        .select("id")
+        .single();
+
+      if (error) {
+        setSaveError(error.message);
+      } else {
+        setSavedId(data.id);
+        savedOnce.current = true;
+      }
+      setSaving(false);
+    };
+
+    save();
+    // dependency berisi nilai final hasil kuis
   }, [name, score, category, quizQuestions.length]);
 
-  // Hitung statistik waktu
-  const totalSeconds = quizQuestions.length * 5 + Math.floor(Math.random() * 30); // simulasi
+  // ⬇️ AMBIL STATISTIK DARI SUPABASE (GANTI SIMULASI)
+  const [stats, setStats] = useState({
+    totalQuizzes: 0,
+    activePlayers: 0,
+    avgScore: 0, // rata2 (%) dari score/total * 100
+  });
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      // Ambil kolom yang dibutuhkan saja biar ringan
+      const { data, error } = await supabase
+        .from("scores")
+        .select("name, score, total");
+
+      if (error) {
+        // Kalau error, biarin dulu UI tetap jalan
+        console.error(error);
+        return;
+      }
+
+      const totalQuizzes = data.length;
+      const activePlayers = new Set(data.map((d) => d.name)).size;
+      const avgScore = totalQuizzes
+        ? Math.round(
+            (data.reduce((acc, d) => acc + d.score / d.total, 0) / totalQuizzes) *
+              100
+          )
+        : 0;
+
+      setStats({ totalQuizzes, activePlayers, avgScore });
+    };
+
+    fetchStats();
+    // panggil ulang setelah berhasil simpan (savedId berubah)
+  }, [savedId]);
+
+  // ⬇️ PERHITUNGAN UI (masih sama seperti punyamu)
+  const totalSeconds = quizQuestions.length * 5 + Math.floor(Math.random() * 30); // masih simulasi
   const avgSeconds = Math.round(totalSeconds / quizQuestions.length);
 
-  // Hitung grade
   const percent = Math.round((score / quizQuestions.length) * 100);
-  let grade = 'A';
-  if (percent >= 90) grade = 'A';
-  else if (percent >= 80) grade = 'B';
-  else if (percent >= 70) grade = 'C';
-  else if (percent >= 60) grade = 'D';
-  else grade = 'E';
+  let grade = "A";
+  if (percent >= 90) grade = "A";
+  else if (percent >= 80) grade = "B";
+  else if (percent >= 70) grade = "C";
+  else if (percent >= 60) grade = "D";
+  else grade = "E";
 
-  // Badge
-  let badge = '';
-  if (percent >= 95) badge = 'Excellent!';
-  else if (avgSeconds < 6) badge = 'Speed Demon!';
-  else if (avgSeconds < 10) badge = 'Quick Thinker!';
-  else badge = 'Good Job!';
-
-  // Statistik platform (simulasi, implementasi real: ambil dari localStorage/DB)
-  const leaderboard = JSON.parse(localStorage.getItem('leaderboard') || '[]');
-  const totalUsers = leaderboard.length;
-  const totalQuizzes = leaderboard.length;
-  const avgScore = leaderboard.length ? Math.round(leaderboard.reduce((a, b) => a + b.score, 0) / leaderboard.length / quizQuestions.length * 100) : 0;
-  const activePlayers = leaderboard.filter((v, i, arr) => arr.findIndex(x => x.name === v.name) === i).length;
+  let badge = "";
+  if (percent >= 95) badge = "Excellent!";
+  else if (avgSeconds < 6) badge = "Speed Demon!";
+  else if (avgSeconds < 10) badge = "Quick Thinker!";
+  else badge = "Good Job!";
 
   return (
-    <main style={{
-      padding: '32px',
-      textAlign: 'center',
-      background: '#e3f2fd',
-      color: '#222',
-      borderRadius: '16px',
-      boxShadow: '0 2px 16px rgba(33,150,243,0.07)',
-      maxWidth: '600px',
-      margin: '0 auto'
-    }}>
-      <div style={{marginBottom: 24}}>
-        <h1 style={{color: '#222', fontWeight: 700}}>Quiz Selesai!</h1>
-        <p style={{fontSize: '1.1rem', color: '#444'}}>Luar biasa! 🎉</p>
-        <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', margin: '24px 0'}}>
-          <div style={{width: 120, height: 120, borderRadius: '50%', border: '8px solid #222', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32, fontWeight: 700, marginBottom: 8}}>
+    <main
+      style={{
+        padding: "32px",
+        textAlign: "center",
+        background: "#e3f2fd",
+        color: "#222",
+        borderRadius: "16px",
+        boxShadow: "0 2px 16px rgba(33,150,243,0.07)",
+        maxWidth: "600px",
+        margin: "0 auto",
+      }}
+    >
+      <div style={{ marginBottom: 24 }}>
+        <h1 style={{ color: "#222", fontWeight: 700 }}>Quiz Selesai!</h1>
+        <p style={{ fontSize: "1.1rem", color: "#444" }}>Luar biasa! 🎉</p>
+
+        {/* STATUS SIMPAN */}
+        {saving && (
+          <p style={{ color: "#222", marginTop: 8 }}>Menyimpan skor ke server…</p>
+        )}
+        {saveError && (
+          <p style={{ color: "#f44336", marginTop: 8 }}>
+            Gagal simpan skor: {saveError}
+          </p>
+        )}
+        {savedId && (
+          <p style={{ color: "#2e7d32", marginTop: 8 }}>
+            Skor tersimpan ✓
+          </p>
+        )}
+
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            margin: "24px 0",
+          }}
+        >
+          <div
+            style={{
+              width: 120,
+              height: 120,
+              borderRadius: "50%",
+              border: "8px solid #222",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: 32,
+              fontWeight: 700,
+              marginBottom: 8,
+            }}
+          >
             {grade}
           </div>
-          <div style={{fontSize: 20, fontWeight: 600}}>{percent}%</div>
-          <div style={{width: '100%', marginTop: 12}}>
-            <progress value={score} max={quizQuestions.length} style={{width: '100%', accentColor: '#222', background: '#eee', height: 8, borderRadius: 8}} />
-            <div style={{fontSize: 14, color: '#444', marginTop: 4}}>{score} dari {quizQuestions.length} benar</div>
+          <div style={{ fontSize: 20, fontWeight: 600 }}>{percent}%</div>
+          <div style={{ width: "100%", marginTop: 12 }}>
+            <progress
+              value={score}
+              max={quizQuestions.length}
+              style={{
+                width: "100%",
+                accentColor: "#222",
+                background: "#eee",
+                height: 8,
+                borderRadius: 8,
+              }}
+            />
+            <div style={{ fontSize: 14, color: "#444", marginTop: 4 }}>
+              {score} dari {quizQuestions.length} benar
+            </div>
           </div>
         </div>
-        <div style={{display: 'flex', justifyContent: 'center', gap: 12, margin: '16px 0'}}>
-          <span style={{padding: '8px 18px', background: '#ffe066', borderRadius: 24, fontWeight: 600, color: '#222', fontSize: 16}}>{badge}</span>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            gap: 12,
+            margin: "16px 0",
+          }}
+        >
+          <span
+            style={{
+              padding: "8px 18px",
+              background: "#ffe066",
+              borderRadius: 24,
+              fontWeight: 600,
+              color: "#222",
+              fontSize: 16,
+            }}
+          >
+            {badge}
+          </span>
         </div>
       </div>
-      <div style={{display: 'flex', justifyContent: 'space-between', gap: 12, marginBottom: 24}}>
-        <div style={{flex: 1, background: '#f7f7f7', borderRadius: 12, padding: 16}}>
-          <div style={{fontSize: 22, fontWeight: 700}}>{score}/{quizQuestions.length}</div>
-          <div style={{fontSize: 13, color: '#444'}}>Jawaban Benar</div>
+
+      <div style={{ display: "flex", justifyContent: "space-between", gap: 12, marginBottom: 24 }}>
+        <div style={{ flex: 1, background: "#f7f7f7", borderRadius: 12, padding: 16 }}>
+          <div style={{ fontSize: 22, fontWeight: 700 }}>
+            {score}/{quizQuestions.length}
+          </div>
+          <div style={{ fontSize: 13, color: "#444" }}>Jawaban Benar</div>
         </div>
-        <div style={{flex: 1, background: '#f7f7f7', borderRadius: 12, padding: 16}}>
-          <div style={{fontSize: 22, fontWeight: 700}}>{Math.floor(totalSeconds/60)}:{(totalSeconds%60).toString().padStart(2,'0')}</div>
-          <div style={{fontSize: 13, color: '#444'}}>Total Waktu</div>
+        <div style={{ flex: 1, background: "#f7f7f7", borderRadius: 12, padding: 16 }}>
+          <div style={{ fontSize: 22, fontWeight: 700 }}>
+            {Math.floor(totalSeconds / 60)}:{(totalSeconds % 60).toString().padStart(2, "0")}
+          </div>
+          <div style={{ fontSize: 13, color: "#444" }}>Total Waktu</div>
         </div>
-        <div style={{flex: 1, background: '#f7f7f7', borderRadius: 12, padding: 16}}>
-          <div style={{fontSize: 22, fontWeight: 700}}>{avgSeconds}s</div>
-          <div style={{fontSize: 13, color: '#444'}}>Rata-rata per Soal</div>
+        <div style={{ flex: 1, background: "#f7f7f7", borderRadius: 12, padding: 16 }}>
+          <div style={{ fontSize: 22, fontWeight: 700 }}>{avgSeconds}s</div>
+          <div style={{ fontSize: 13, color: "#444" }}>Rata-rata per Soal</div>
         </div>
       </div>
-      <div style={{display: 'flex', justifyContent: 'center', gap: 12, marginBottom: 24}}>
-        <button onClick={() => {setStep(-2); setScore(0); setName(""); setCategory('');}}
-          style={{padding: '12px 32px', background: '#222', color: '#fff', borderRadius: '8px', fontWeight: '600', fontSize: '1.1rem', cursor: 'pointer', border: 'none'}}>
+
+      <div style={{ display: "flex", justifyContent: "center", gap: 12, marginBottom: 24 }}>
+        <button
+          onClick={() => {
+            setStep(-2);
+            setScore(0);
+            setName("");
+            setCategory("");
+          }}
+          style={{
+            padding: "12px 32px",
+            background: "#222",
+            color: "#fff",
+            borderRadius: "8px",
+            fontWeight: "600",
+            fontSize: "1.1rem",
+            cursor: "pointer",
+            border: "none",
+          }}
+        >
           Ulangi Quiz
         </button>
-        <button onClick={() => alert('Fitur review jawaban belum tersedia.')}
-          style={{padding: '12px 32px', background: '#eee', color: '#222', borderRadius: '8px', fontWeight: '600', fontSize: '1.1rem', cursor: 'pointer', border: 'none'}}>
+        <button
+          onClick={() => alert("Fitur review jawaban belum tersedia.")}
+          style={{
+            padding: "12px 32px",
+            background: "#eee",
+            color: "#222",
+            borderRadius: "8px",
+            fontWeight: "600",
+            fontSize: "1.1rem",
+            cursor: "pointer",
+            border: "none",
+          }}
+        >
           Review Jawaban
         </button>
-        <a href="/leaderboard" style={{padding: '12px 32px', background: '#eee', color: '#222', borderRadius: '8px', fontWeight: '600', fontSize: '1.1rem', textDecoration: 'none', display: 'inline-block'}}>Leaderboard</a>
+        <a
+          href="/leaderboard"
+          style={{
+            padding: "12px 32px",
+            background: "#eee",
+            color: "#222",
+            borderRadius: "8px",
+            fontWeight: "600",
+            fontSize: "1.1rem",
+            textDecoration: "none",
+            display: "inline-block",
+          }}
+        >
+          Leaderboard
+        </a>
       </div>
-      <div style={{marginTop: 32, textAlign: 'left'}}>
-        <h3 style={{fontWeight: 700, fontSize: 18, marginBottom: 12}}>Platform Statistics</h3>
-        <div style={{display: 'flex', gap: 16, marginBottom: 16}}>
-          <div style={{flex: 1, background: '#f7f7f7', borderRadius: 12, padding: 16}}>
-            <div style={{fontSize: 20, fontWeight: 700}}>{totalUsers}</div>
-            <div style={{fontSize: 13, color: '#444'}}>Total Users</div>
+
+      <div style={{ marginTop: 32, textAlign: "left" }}>
+        <h3 style={{ fontWeight: 700, fontSize: 18, marginBottom: 12 }}>Platform Statistics</h3>
+        <div style={{ display: "flex", gap: 16, marginBottom: 16 }}>
+          <div style={{ flex: 1, background: "#f7f7f7", borderRadius: 12, padding: 16 }}>
+            <div style={{ fontSize: 20, fontWeight: 700 }}>{stats.activePlayers}</div>
+            <div style={{ fontSize: 13, color: "#444" }}>Total Users</div>
           </div>
-          <div style={{flex: 1, background: '#f7f7f7', borderRadius: 12, padding: 16}}>
-            <div style={{fontSize: 20, fontWeight: 700}}>{totalQuizzes}</div>
-            <div style={{fontSize: 13, color: '#444'}}>Quizzes Taken</div>
+          <div style={{ flex: 1, background: "#f7f7f7", borderRadius: 12, padding: 16 }}>
+            <div style={{ fontSize: 20, fontWeight: 700 }}>{stats.totalQuizzes}</div>
+            <div style={{ fontSize: 13, color: "#444" }}>Quizzes Taken</div>
           </div>
-          <div style={{flex: 1, background: '#f7f7f7', borderRadius: 12, padding: 16}}>
-            <div style={{fontSize: 20, fontWeight: 700}}>{avgScore}%</div>
-            <div style={{fontSize: 13, color: '#444'}}>Average Score</div>
+          <div style={{ flex: 1, background: "#f7f7f7", borderRadius: 12, padding: 16 }}>
+            <div style={{ fontSize: 20, fontWeight: 700 }}>{stats.avgScore}%</div>
+            <div style={{ fontSize: 13, color: "#444" }}>Average Score</div>
           </div>
-          <div style={{flex: 1, background: '#f7f7f7', borderRadius: 12, padding: 16}}>
-            <div style={{fontSize: 20, fontWeight: 700}}>{activePlayers}</div>
-            <div style={{fontSize: 13, color: '#444'}}>Active Players</div>
+          <div style={{ flex: 1, background: "#f7f7f7", borderRadius: 12, padding: 16 }}>
+            <div style={{ fontSize: 20, fontWeight: 700 }}>{stats.activePlayers}</div>
+            <div style={{ fontSize: 13, color: "#444" }}>Active Players</div>
           </div>
         </div>
       </div>
@@ -332,6 +514,72 @@ function SelesaiComponent({ name, score, category, quizQuestions, setStep, setSc
   );
 }
 
+//buat tombolsubmit 
+const handleSubmit = async () => {
+    try {
+      const res = await fetch("/api/cekjawaban", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username,
+          category,
+          number,
+          jawaban,
+        }),
+      });
+
+      const data = await res.json();
+      setHasil(data);
+    } catch (err) {
+      console.error("Error submit:", err);
+    }
+  };
+  
+  return (
+    <main style={{ padding: 32 }}>
+      <h1>Quiz</h1>
+      <div>
+        <label>
+          Jawaban Kamu:
+          <input
+            type="text"
+            value={answer}
+            onChange={(e) => setAnswer(e.target.value)}
+            style={{ marginLeft: 8 }}
+          />
+        </label>
+        <button onClick={handleSubmit} style={{ marginLeft: 12 }}>
+          Submit
+        </button>
+      </div>
+
+      {result && (
+        <p style={{ marginTop: 16 }}>
+          Hasil: <b>{result.status}</b> ({result.message})
+        </p>
+      )}
+
+      <h2 style={{ marginTop: 32 }}>Leaderboard</h2>
+      <table border="1" cellPadding="8">
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Nama</th>
+            <th>Skor</th>
+          </tr>
+        </thead>
+        <tbody>
+          {leaderboard.map((row, idx) => (
+            <tr key={row.id}>
+              <td>{idx + 1}</td>
+              <td>{row.username}</td>
+              <td>{row.score}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </main>
+  );
 
 function SoalComponent({ step, setStep, quizQuestions, current, selected, setSelected, showFeedback, handleAnswer, nextQuestion, answerTimes, streak, seconds }) {
   return (
