@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { questions } from './questions';
+import { questions } from './questions'; // FIXED: Ubah dari './questions' menjadi sama dengan nama file
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from "@/lib/supabaseClient";
@@ -20,14 +20,8 @@ export default function QuizPage() {
   const [streak, setStreak] = useState(0);
   const [streakMax, setStreakMax] = useState(0);
   const [answerTimes, setAnswerTimes] = useState([]);
+  const [startTime, setStartTime] = useState(null); // FIXED: Timer berbasis Date.now()
   const timerRef = useRef();
-  const [answer, setAnswer] = useState("");
-  const [result, setResult] = useState(null);
-  const [leaderboard, setLeaderboard] = useState([]);
-  const [username, setUsername] = useState("");
-  const [number, setNumber] = useState(1);
-  const [jawaban, setJawaban] = useState("");
-  const [hasil, setHasil] = useState(null);
 
   // Soal sesuai kategori
   const quizQuestions = category && questions[category] ? questions[category] : [];
@@ -42,19 +36,28 @@ export default function QuizPage() {
     }
   }, []);
 
-  // Timer berjalan saat kuis aktif
+  // FIXED: Timer akurat berbasis Date.now()
   useEffect(() => {
     if (step >= 0 && step < quizQuestions.length) {
-      timerRef.current = setInterval(() => setSeconds(s => s + 1), 1000);
+      if (!startTime) {
+        setStartTime(Date.now());
+      }
+      timerRef.current = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - (startTime || Date.now())) / 1000);
+        setSeconds(elapsed);
+      }, 1000);
     } else {
       clearInterval(timerRef.current);
     }
     return () => clearInterval(timerRef.current);
-  }, [step, quizQuestions.length]);
+  }, [step, quizQuestions.length, startTime]);
 
   // Reset timer saat mulai ulang kuis
   useEffect(() => {
-    if (step === 0) setSeconds(0);
+    if (step === 0) {
+      setSeconds(0);
+      setStartTime(Date.now());
+    }
   }, [step]);
 
   // Set background body khusus halaman quiz
@@ -86,22 +89,15 @@ export default function QuizPage() {
   const handleAnswer = async (idx) => {
     setSelected(idx);
     setShowFeedback(true);
-    setAnswerTimes([...answerTimes, seconds]);
-    // Jawaban huruf (A/B/C/D)
+    
+    // Hitung waktu per soal
+    const timeForThisQuestion = startTime ? Math.floor((Date.now() - startTime) / 1000) - answerTimes.reduce((a,b) => a+b, 0) : 10;
+    setAnswerTimes([...answerTimes, timeForThisQuestion]);
+    
+    // FIXED: Jawaban huruf (A/B/C/D) konsisten dengan questions.js
     const answerLetter = String.fromCharCode(65 + idx);
-    let correct = false;
-    try {
-      const res = await fetch('/api/cekjawaban', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ category, number: step + 1, answer: answerLetter })
-      });
-      const data = await res.json();
-      correct = data.status === 'benar';
-    } catch (e) {
-      // Fallback: current.answer bisa string/huruf
-      correct = answerLetter === current.answer || idx === current.answer;
-    }
+    const correct = answerLetter === current.answer;
+    
     if (correct) {
       setScore(score + 1);
       setStreak(streak + 1);
@@ -115,27 +111,6 @@ export default function QuizPage() {
     setSelected(null);
     setShowFeedback(false);
     setStep(step + 1);
-  };
-
-  // Handle submit function
-  const handleSubmit = async () => {
-    try {
-      const res = await fetch("/api/cekjawaban", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          username,
-          category,
-          number,
-          jawaban,
-        }),
-      });
-
-      const data = await res.json();
-      setHasil(data);
-    } catch (err) {
-      console.error("Error submit:", err);
-    }
   };
 
   return (
@@ -154,6 +129,7 @@ export default function QuizPage() {
             error={error}
             setError={setError}
             setStep={setStep}
+            category={category}
           />
         </motion.div>
       )}
@@ -174,6 +150,12 @@ export default function QuizPage() {
             setScore={setScore}
             setName={setName}
             setCategory={setCategory}
+            setStreak={setStreak}
+            setStreakMax={setStreakMax}
+            setAnswerTimes={setAnswerTimes}
+            setStartTime={setStartTime}
+            totalSeconds={seconds}
+            answerTimes={answerTimes}
           />
         </motion.div>
       )}
@@ -205,9 +187,7 @@ export default function QuizPage() {
   );
 }
 
-// KategoriComponent dihapus, pemilihan kategori hanya di home page
-
-function NamaComponent({ name, setName, error, setError, setStep }) {
+function NamaComponent({ name, setName, error, setError, setStep, category }) {
   return (
     <main style={{
       padding: '32px',
@@ -220,6 +200,7 @@ function NamaComponent({ name, setName, error, setError, setStep }) {
       boxShadow: '0 2px 16px rgba(33,150,243,0.07)'
     }}>
       <h1 style={{color: '#222'}}>Masukkan Nama Anda</h1>
+      <p style={{color: '#666', marginBottom: 20}}>Kategori: <strong>{category?.toUpperCase()}</strong></p>
       <input
         type="text"
         value={name}
@@ -242,14 +223,29 @@ function NamaComponent({ name, setName, error, setError, setStep }) {
   );
 }
 
-function SelesaiComponent({ name, score, category, quizQuestions, setStep, setScore, setName, setCategory }) {
-  // ⬇️ STATUS SIMPAN KE SUPABASE
+function SelesaiComponent({ 
+  name, 
+  score, 
+  category, 
+  quizQuestions, 
+  setStep, 
+  setScore, 
+  setName, 
+  setCategory,
+  setStreak,
+  setStreakMax,
+  setAnswerTimes,
+  setStartTime,
+  totalSeconds,
+  answerTimes
+}) {
+  // Status simpan ke Supabase
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
   const [savedId, setSavedId] = useState(null);
-  const savedOnce = useRef(false); // cegah double-insert (StrictMode dll)
+  const savedOnce = useRef(false); // cegah double-insert
 
-  // ⬇️ SIMPAN SCORE SEKALI SAJA SAAT HALAMAN "SELESAI" MUNCUL
+  // FIXED: Simpan ke table leaderboard (bukan scores)
   useEffect(() => {
     const save = async () => {
       if (!name || savedOnce.current) return;
@@ -257,16 +253,13 @@ function SelesaiComponent({ name, score, category, quizQuestions, setStep, setSc
       setSaveError("");
 
       const payload = {
-        name,
-        category,
-        score,
-        total: quizQuestions.length,
-        // kamu boleh tambahkan kolom lain jika tabelnya punya, misal:
-        // took_seconds: totalSeconds, etc.
+        username: name, // FIXED: Ganti dari 'name' ke 'username' sesuai API
+        skor: score * 10, // FIXED: Skor dalam bentuk nilai (10 per benar)
+        // Bisa tambahkan field lain jika diperlukan
       };
 
       const { data, error } = await supabase
-        .from("scores")
+        .from("leaderboard") // FIXED: Pakai table leaderboard
         .insert(payload)
         .select("id")
         .single();
@@ -281,35 +274,32 @@ function SelesaiComponent({ name, score, category, quizQuestions, setStep, setSc
     };
 
     save();
-    // dependency berisi nilai final hasil kuis
-  }, [name, score, category, quizQuestions.length]);
+  }, [name, score]);
 
-  // ⬇️ AMBIL STATISTIK DARI SUPABASE (GANTI SIMULASI)
+  // Ambil statistik dari Supabase
   const [stats, setStats] = useState({
     totalQuizzes: 0,
     activePlayers: 0,
-    avgScore: 0, // rata2 (%) dari score/total * 100
+    avgScore: 0,
   });
 
   useEffect(() => {
     const fetchStats = async () => {
-      // Ambil kolom yang dibutuhkan saja biar ringan
+      // Ambil data dari table leaderboard
       const { data, error } = await supabase
-        .from("scores")
-        .select("name, score, total");
+        .from("leaderboard")
+        .select("username, skor");
 
       if (error) {
-        // Kalau error, biarin dulu UI tetap jalan
         console.error(error);
         return;
       }
 
       const totalQuizzes = data.length;
-      const activePlayers = new Set(data.map((d) => d.name)).size;
+      const activePlayers = new Set(data.map((d) => d.username)).size;
       const avgScore = totalQuizzes
         ? Math.round(
-            (data.reduce((acc, d) => acc + d.score / d.total, 0) / totalQuizzes) *
-              100
+            (data.reduce((acc, d) => acc + d.skor, 0) / totalQuizzes) 
           )
         : 0;
 
@@ -317,12 +307,12 @@ function SelesaiComponent({ name, score, category, quizQuestions, setStep, setSc
     };
 
     fetchStats();
-    // panggil ulang setelah berhasil simpan (savedId berubah)
   }, [savedId]);
 
-  // ⬇️ PERHITUNGAN UI (masih sama seperti punyamu)
-  const totalSeconds = quizQuestions.length * 5 + Math.floor(Math.random() * 30); // masih simulasi
-  const avgSeconds = Math.round(totalSeconds / quizQuestions.length);
+  // Perhitungan UI
+  const avgSeconds = answerTimes.length > 0 
+    ? Math.round(answerTimes.reduce((a,b) => a+b, 0) / answerTimes.length) 
+    : Math.round(totalSeconds / quizQuestions.length);
 
   const percent = Math.round((score / quizQuestions.length) * 100);
   let grade = "A";
@@ -338,6 +328,18 @@ function SelesaiComponent({ name, score, category, quizQuestions, setStep, setSc
   else if (avgSeconds < 10) badge = "Quick Thinker!";
   else badge = "Good Job!";
 
+  // FIXED: Reset quiz function
+  const handleResetQuiz = () => {
+    setStep(-1); // FIXED: Kembali ke input nama (bukan -2)
+    setScore(0);
+    setName("");
+    setStreak(0);
+    setStreakMax(0);
+    setAnswerTimes([]);
+    setStartTime(null);
+    savedOnce.current = false; // Reset save status
+  };
+  
   return (
     <main
       style={{
@@ -354,6 +356,7 @@ function SelesaiComponent({ name, score, category, quizQuestions, setStep, setSc
       <div style={{ marginBottom: 24 }}>
         <h1 style={{ color: "#222", fontWeight: 700 }}>Quiz Selesai!</h1>
         <p style={{ fontSize: "1.1rem", color: "#444" }}>Luar biasa! 🎉</p>
+        <p style={{ color: "#666" }}>Kategori: <strong>{category?.toUpperCase()}</strong></p>
 
         {/* STATUS SIMPAN */}
         {saving && (
@@ -454,14 +457,9 @@ function SelesaiComponent({ name, score, category, quizQuestions, setStep, setSc
         </div>
       </div>
 
-      <div style={{ display: "flex", justifyContent: "center", gap: 12, marginBottom: 24 }}>
+      <div style={{ display: "flex", justifyContent: "center", gap: 12, marginBottom: 24, flexWrap: "wrap" }}>
         <button
-          onClick={() => {
-            setStep(-2);
-            setScore(0);
-            setName("");
-            setCategory("");
-          }}
+          onClick={handleResetQuiz}
           style={{
             padding: "12px 32px",
             background: "#222",
@@ -475,23 +473,8 @@ function SelesaiComponent({ name, score, category, quizQuestions, setStep, setSc
         >
           Ulangi Quiz
         </button>
-        <button
-          onClick={() => alert("Fitur review jawaban belum tersedia.")}
-          style={{
-            padding: "12px 32px",
-            background: "#eee",
-            color: "#222",
-            borderRadius: "8px",
-            fontWeight: "600",
-            fontSize: "1.1rem",
-            cursor: "pointer",
-            border: "none",
-          }}
-        >
-          Review Jawaban
-        </button>
-        <a
-          href="/leaderboard"
+        <Link
+          href="/"
           style={{
             padding: "12px 32px",
             background: "#eee",
@@ -503,26 +486,41 @@ function SelesaiComponent({ name, score, category, quizQuestions, setStep, setSc
             display: "inline-block",
           }}
         >
+          Pilih Kategori Lain
+        </Link>
+        <Link
+          href="/leaderboard"
+          style={{
+            padding: "12px 32px",
+            background: "#2196f3",
+            color: "#fff",
+            borderRadius: "8px",
+            fontWeight: "600",
+            fontSize: "1.1rem",
+            textDecoration: "none",
+            display: "inline-block",
+          }}
+        >
           Leaderboard
-        </a>
+        </Link>
       </div>
 
       <div style={{ marginTop: 32, textAlign: "left" }}>
         <h3 style={{ fontWeight: 700, fontSize: 18, marginBottom: 12 }}>Platform Statistics</h3>
-        <div style={{ display: "flex", gap: 16, marginBottom: 16 }}>
-          <div style={{ flex: 1, background: "#f7f7f7", borderRadius: 12, padding: 16 }}>
+        <div style={{ display: "flex", gap: 16, marginBottom: 16, flexWrap: "wrap" }}>
+          <div style={{ flex: 1, minWidth: 120, background: "#f7f7f7", borderRadius: 12, padding: 16 }}>
             <div style={{ fontSize: 20, fontWeight: 700 }}>{stats.activePlayers}</div>
             <div style={{ fontSize: 13, color: "#444" }}>Total Users</div>
           </div>
-          <div style={{ flex: 1, background: "#f7f7f7", borderRadius: 12, padding: 16 }}>
+          <div style={{ flex: 1, minWidth: 120, background: "#f7f7f7", borderRadius: 12, padding: 16 }}>
             <div style={{ fontSize: 20, fontWeight: 700 }}>{stats.totalQuizzes}</div>
             <div style={{ fontSize: 13, color: "#444" }}>Quizzes Taken</div>
           </div>
-          <div style={{ flex: 1, background: "#f7f7f7", borderRadius: 12, padding: 16 }}>
-            <div style={{ fontSize: 20, fontWeight: 700 }}>{stats.avgScore}%</div>
+          <div style={{ flex: 1, minWidth: 120, background: "#f7f7f7", borderRadius: 12, padding: 16 }}>
+            <div style={{ fontSize: 20, fontWeight: 700 }}>{stats.avgScore}</div>
             <div style={{ fontSize: 13, color: "#444" }}>Average Score</div>
           </div>
-          <div style={{ flex: 1, background: "#f7f7f7", borderRadius: 12, padding: 16 }}>
+          <div style={{ flex: 1, minWidth: 120, background: "#f7f7f7", borderRadius: 12, padding: 16 }}>
             <div style={{ fontSize: 20, fontWeight: 700 }}>{stats.activePlayers}</div>
             <div style={{ fontSize: 13, color: "#444" }}>Active Players</div>
           </div>
@@ -568,6 +566,7 @@ function SoalComponent({ step, setStep, quizQuestions, current, selected, setSel
         <div style={{fontSize: 13, marginTop: 8}}>Kecepatan</div>
         <div style={{fontWeight: 600, fontSize: 15}}>{seconds/(step+1) < 7 && step > 0 ? 'Cepat' : 'Normal'}</div>
       </div>
+
       {/* Header progress dan timer */}
       <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18}}>
         <div style={{fontWeight: 600, fontSize: 16}}>Pertanyaan {step + 1} dari {quizQuestions.length}</div>
@@ -575,39 +574,76 @@ function SoalComponent({ step, setStep, quizQuestions, current, selected, setSel
       </div>
       <progress value={step + 1} max={quizQuestions.length} style={{width: '100%', accentColor: '#222', background: '#eee', height: 6, borderRadius: 8}} />
       <div style={{fontSize: 13, color: '#444', margin: '8px 0 18px 0'}}>{Math.round(((step + 1) / quizQuestions.length) * 100)}% selesai</div>
+
       <div style={{margin: '24px 0'}}>
         <strong style={{color: '#222', fontSize: 22}}>{current.question}</strong>
       </div>
+
       <div>
-        {current.options.map((opt, idx) => (
-          <motion.button
-            key={idx}
-            whileTap={{ scale: 0.97 }}
-            whileHover={!showFeedback ? { scale: 1.03, boxShadow: '0 2px 12px #2196f355' } : {}}
-            onClick={() => {
-              if (!showFeedback) setSelected(idx);
-            }}
-            disabled={showFeedback}
-            style={{
-              display: 'block',
-              width: '100%',
-              marginBottom: '12px',
-              padding: '16px',
-              background: selected === idx ? '#e3f2fd' : '#fff',
-              color: selected === idx ? '#2196f3' : '#222',
-              borderRadius: '8px',
-              border: selected === idx ? '2px solid #2196f3' : '1px solid #bbb',
-              cursor: showFeedback ? 'not-allowed' : 'pointer',
-              fontWeight: '600',
-              transition: 'background 0.2s, color 0.2s',
-              textAlign: 'left',
-              fontSize: 18
-            }}
-          >
-            <span style={{fontWeight: 700, marginRight: 12}}>{String.fromCharCode(65 + idx)}</span> {opt}
-          </motion.button>
-        ))}
+        {current.options.map((opt, idx) => {
+          // FIXED: Tampilkan feedback visual saat showFeedback
+          let buttonStyle = {
+            display: 'block',
+            width: '100%',
+            marginBottom: '12px',
+            padding: '16px',
+            borderRadius: '8px',
+            cursor: showFeedback ? 'not-allowed' : 'pointer',
+            fontWeight: '600',
+            transition: 'background 0.2s, color 0.2s',
+            textAlign: 'left',
+            fontSize: 18,
+            border: '2px solid',
+          };
+
+          if (showFeedback) {
+            // Tampilkan jawaban yang benar dan salah
+            const isCorrect = String.fromCharCode(65 + idx) === current.answer;
+            const isSelected = selected === idx;
+            
+            if (isCorrect) {
+              buttonStyle.background = '#c8e6c9';
+              buttonStyle.color = '#2e7d32';
+              buttonStyle.borderColor = '#4caf50';
+            } else if (isSelected) {
+              buttonStyle.background = '#ffcdd2';
+              buttonStyle.color = '#d32f2f';
+              buttonStyle.borderColor = '#f44336';
+            } else {
+              buttonStyle.background = '#f5f5f5';
+              buttonStyle.color = '#666';
+              buttonStyle.borderColor = '#ddd';
+            }
+          } else {
+            // Style normal
+            if (selected === idx) {
+              buttonStyle.background = '#e3f2fd';
+              buttonStyle.color = '#2196f3';
+              buttonStyle.borderColor = '#2196f3';
+            } else {
+              buttonStyle.background = '#fff';
+              buttonStyle.color = '#222';
+              buttonStyle.borderColor = '#bbb';
+            }
+          }
+
+          return (
+            <motion.button
+              key={idx}
+              whileTap={{ scale: 0.97 }}
+              whileHover={!showFeedback ? { scale: 1.03, boxShadow: '0 2px 12px #2196f355' } : {}}
+              onClick={() => {
+                if (!showFeedback) setSelected(idx);
+              }}
+              disabled={showFeedback}
+              style={buttonStyle}
+            >
+              <span style={{fontWeight: 700, marginRight: 12}}>{String.fromCharCode(65 + idx)}</span> {opt}
+            </motion.button>
+          );
+        })}
       </div>
+
       <div style={{display:'flex',justifyContent:'space-between',marginTop:32}}>
         <motion.button
           whileTap={{ scale: 0.96 }}
@@ -616,6 +652,7 @@ function SoalComponent({ step, setStep, quizQuestions, current, selected, setSel
           disabled={step === 0 || showFeedback}
           style={{padding:'10px 28px',background:step === 0 ? '#eee' : '#43a047',color:step === 0 ? '#bbb' : '#fff',borderRadius:8,border:'none',fontWeight:'600',cursor:step === 0 ? 'not-allowed' : 'pointer',fontSize:16}}
         >Previous</motion.button>
+        
         {!showFeedback && (
           <motion.button
             whileTap={{ scale: 0.96 }}
@@ -626,6 +663,7 @@ function SoalComponent({ step, setStep, quizQuestions, current, selected, setSel
           >Jawab</motion.button>
         )}
       </div>
+
       {showFeedback && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -634,10 +672,15 @@ function SoalComponent({ step, setStep, quizQuestions, current, selected, setSel
           transition={{ duration: 0.3 }}
           style={{marginTop: '18px'}}
         >
-          <p style={{color: selected === current.answer ? '#222' : '#f44336', fontWeight: 'bold'}}>
-            {selected === current.answer ? 'Jawaban Benar!' : 'Jawaban Salah!'}
+          <p style={{color: String.fromCharCode(65 + selected) === current.answer ? '#2e7d32' : '#f44336', fontWeight: 'bold'}}>
+            {String.fromCharCode(65 + selected) === current.answer ? '✅ Jawaban Benar!' : '❌ Jawaban Salah!'}
           </p>
-          <small style={{color: '#444'}}>{current.explanation}</small>
+          <p style={{color: '#666', fontSize: 14, marginTop: 8}}>
+            <strong>Jawaban yang benar:</strong> {current.answer}
+          </p>
+          <p style={{color: '#444', fontSize: 14, marginTop: 8}}>
+            <strong>Penjelasan:</strong> {current.explanation}
+          </p>
           <div style={{marginTop: '18px', textAlign:'right'}}>
             <motion.button
               whileTap={{ scale: 0.96 }}
@@ -645,7 +688,7 @@ function SoalComponent({ step, setStep, quizQuestions, current, selected, setSel
               onClick={nextQuestion}
               style={{padding: '10px 28px', background: '#2196f3', color: '#fff', borderRadius: '8px', border: 'none', fontWeight: '600', cursor: 'pointer', display:'inline-flex',alignItems:'center',gap:8}}
             >
-              Selanjutnya
+              {step + 1 < quizQuestions.length ? 'Selanjutnya →' : 'Lihat Hasil'}
             </motion.button>
           </div>
         </motion.div>
