@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { questions } from './questions'; // FIXED: Ubah dari './questions' menjadi sama dengan nama file
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { supabase } from '@/lib/supabaseClient'
+import { supabase } from '@/lib/supabaseClient';
+import ReviewJawaban from '../components/ReviewJawaban'; // Import komponen ReviewJawaban
 
 export default function QuizPage() {
   // State
@@ -22,6 +23,11 @@ export default function QuizPage() {
   const [answerTimes, setAnswerTimes] = useState([]);
   const [startTime, setStartTime] = useState(null); // FIXED: Timer berbasis Date.now()
   const timerRef = useRef();
+  
+  // State untuk review - TAMBAHAN BARU
+  const [showReview, setShowReview] = useState(false);
+  const [reviewData, setReviewData] = useState(null);
+  const [userAnswers, setUserAnswers] = useState([]); // Menyimpan jawaban user untuk setiap soal
 
   // Soal sesuai kategori
   const quizQuestions = category && questions[category] ? questions[category] : [];
@@ -98,6 +104,17 @@ export default function QuizPage() {
     const answerLetter = String.fromCharCode(65 + idx);
     const correct = answerLetter === current.answer;
     
+    // Simpan jawaban user untuk review - TAMBAHAN BARU
+    const newUserAnswers = [...userAnswers];
+    newUserAnswers[step] = {
+      questionIndex: step,
+      selectedAnswer: answerLetter,
+      selectedIndex: idx,
+      isCorrect: correct,
+      timeSpent: timeForThisQuestion
+    };
+    setUserAnswers(newUserAnswers);
+    
     if (correct) {
       setScore(score + 1);
       setStreak(streak + 1);
@@ -156,6 +173,11 @@ export default function QuizPage() {
             setStartTime={setStartTime}
             totalSeconds={seconds}
             answerTimes={answerTimes}
+            // Props untuk review - TAMBAHAN BARU
+            userAnswers={userAnswers}
+            setUserAnswers={setUserAnswers}
+            setShowReview={setShowReview}
+            setReviewData={setReviewData}
           />
         </motion.div>
       )}
@@ -182,6 +204,15 @@ export default function QuizPage() {
             seconds={seconds}
           />
         </motion.div>
+      )}
+      
+      {/* Komponen ReviewJawaban - TAMBAHAN BARU */}
+      {showReview && reviewData && (
+        <ReviewJawaban 
+          soalList={reviewData.soalList}
+          jawabanUser={reviewData.jawabanUser}
+          onClose={() => setShowReview(false)}
+        />
       )}
     </AnimatePresence>
   );
@@ -237,7 +268,12 @@ function SelesaiComponent({
   setAnswerTimes,
   setStartTime,
   totalSeconds,
-  answerTimes
+  answerTimes,
+  // Props baru untuk review
+  userAnswers,
+  setUserAnswers,
+  setShowReview,
+  setReviewData
 }) {
   // Status simpan ke Supabase
   const [saving, setSaving] = useState(false);
@@ -275,6 +311,16 @@ function SelesaiComponent({
 
     save();
   }, [name, score]);
+
+  // Setup data review saat komponen dimuat - TAMBAHAN BARU
+  useEffect(() => {
+    if (userAnswers.length > 0 && quizQuestions.length > 0) {
+      setReviewData({
+        soalList: quizQuestions,
+        jawabanUser: userAnswers
+      });
+    }
+  }, [userAnswers, quizQuestions, setReviewData]);
 
   // Ambil statistik dari Supabase
   const [stats, setStats] = useState({
@@ -328,7 +374,7 @@ function SelesaiComponent({
   else if (avgSeconds < 10) badge = "Quick Thinker!";
   else badge = "Good Job!";
 
-  // FIXED: Reset quiz function
+  // FIXED: Reset quiz function - DIPERBARUI UNTUK REVIEW
   const handleResetQuiz = () => {
     setStep(-1); // FIXED: Kembali ke input nama (bukan -2)
     setScore(0);
@@ -337,7 +383,15 @@ function SelesaiComponent({
     setStreakMax(0);
     setAnswerTimes([]);
     setStartTime(null);
+    setUserAnswers([]); // Reset jawaban user
+    setShowReview(false); // Tutup review
+    setReviewData(null); // Hapus data review
     savedOnce.current = false; // Reset save status
+  };
+
+  // Fungsi untuk membuka review - TAMBAHAN BARU
+  const handleShowReview = () => {
+    setShowReview(true);
   };
   
   return (
@@ -457,6 +511,7 @@ function SelesaiComponent({
         </div>
       </div>
 
+      {/* TOMBOL AKSI - DIPERBARUI DENGAN REVIEW */}
       <div style={{ display: "flex", justifyContent: "center", gap: 12, marginBottom: 24, flexWrap: "wrap" }}>
         <button
           onClick={handleResetQuiz}
@@ -471,8 +526,28 @@ function SelesaiComponent({
             border: "none",
           }}
         >
-          Ulangi Quiz
+          🔄 Ulangi Quiz
         </button>
+        
+        {/* Tombol Review Jawaban - TAMBAHAN BARU */}
+        {userAnswers.length > 0 && (
+          <button
+            onClick={handleShowReview}
+            style={{
+              padding: "12px 32px",
+              background: "#2196f3",
+              color: "#fff",
+              borderRadius: "8px",
+              fontWeight: "600",
+              fontSize: "1.1rem",
+              cursor: "pointer",
+              border: "none",
+            }}
+          >
+            📋 Review Jawaban
+          </button>
+        )}
+        
         <Link
           href="/"
           style={{
@@ -486,13 +561,13 @@ function SelesaiComponent({
             display: "inline-block",
           }}
         >
-          Pilih Kategori Lain
+          🏠 Pilih Kategori Lain
         </Link>
         <Link
           href="/leaderboard"
           style={{
             padding: "12px 32px",
-            background: "#2196f3",
+            background: "#43a047",
             color: "#fff",
             borderRadius: "8px",
             fontWeight: "600",
@@ -501,7 +576,7 @@ function SelesaiComponent({
             display: "inline-block",
           }}
         >
-          Leaderboard
+          🏆 Leaderboard
         </Link>
       </div>
 

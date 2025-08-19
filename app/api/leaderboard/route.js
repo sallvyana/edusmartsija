@@ -1,25 +1,37 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { supabase } from '@/lib/supabaseClient'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-);
-
-export async function GET() {
+export async function GET(request) {
   try {
-    const { data, error } = await supabase
+    const { searchParams } = new URL(request.url)
+    const kategori = searchParams.get('kategori')
+    
+    console.log('Request kategori:', kategori)
+    
+    let query = supabase
       .from("leaderboard")
-      .select("username, skor")
-      .order("skor", { ascending: false });
+      .select("id, name, score, total_soal, waktu, category, created_at") // sesuai struktur DB
+      .order("score", { ascending: false })      // score tertinggi dulu
+      .order("created_at", { ascending: true })  // jika score sama, yang lebih dulu
+      .limit(10)
+    
+    // Filter berdasarkan kategori jika ada
+    if (kategori && kategori !== 'all') {
+      query = query.eq('category', kategori)
+    }
+    
+    const { data, error } = await query
 
     if (error) {
-      console.error(error);
+      console.error('Supabase error:', error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json(data);
+    console.log('Leaderboard data:', data)
+    return NextResponse.json({ data }); // wrap dalam object agar konsisten
+    
   } catch (err) {
+    console.error('API Error:', err)
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
