@@ -1,49 +1,5 @@
 "use client";
 
-// Komponen LeaderboardTable sederhana
-function LeaderboardTable() {
-  const [data, setData] = useState([]);
-  useEffect(() => {
-    async function fetchLeaderboard() {
-      try {
-        // Ganti dengan API/DB sesuai kebutuhan, contoh pakai Supabase
-        const { data: rows, error } = await supabase
-          .from('leaderboard')
-          .select('username, skor')
-          .order('skor', { ascending: false });
-        if (!error && rows) setData(rows);
-      } catch (e) {
-        setData([]);
-      }
-    }
-    fetchLeaderboard();
-  }, []);
-  return (
-    <table style={{width:'100%',background:'#fff',borderRadius:8,boxShadow:'0 2px 8px #2196f322',margin:'0 auto',fontSize:16}}>
-      <thead>
-        <tr style={{background:'#e3f2fd',color:'#222'}}>
-          <th style={{padding:8}}>#</th>
-          <th style={{padding:8}}>Nama</th>
-          <th style={{padding:8}}>Skor</th>
-        </tr>
-      </thead>
-      <tbody>
-        {data.length === 0 && (
-          <tr><td colSpan={3} style={{padding:16,textAlign:'center'}}>Belum ada data leaderboard.</td></tr>
-        )}
-        {data.map((row, i) => (
-          <tr key={row.username+row.skor} style={{background:i%2?'#f7f7f7':'#fff'}}>
-            <td style={{padding:8}}>{i+1}</td>
-            <td style={{padding:8}}>{row.username}</td>
-            <td style={{padding:8}}>{row.skor}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  );
-}
-"use client";
-
 import Image from 'next/image';
 import Link from 'next/link';
 import { questions } from './questions'; // FIXED: Ubah dari './questions' menjadi sama dengan nama file
@@ -438,6 +394,49 @@ function SelesaiComponent({
     setReviewData(null); // Hapus data review
     savedOnce.current = false; // Reset save status
   };
+
+  // Komponen LeaderboardTable sederhana
+function LeaderboardTable() {
+  const [data, setData] = useState([]);
+  useEffect(() => {
+    async function fetchLeaderboard() {
+      try {
+        // Ganti dengan API/DB sesuai kebutuhan, contoh pakai Supabase
+        const { data: rows, error } = await supabase
+          .from('leaderboard')
+          .select('username, skor')
+          .order('skor', { ascending: false });
+        if (!error && rows) setData(rows);
+      } catch (e) {
+        setData([]);
+      }
+    }
+    fetchLeaderboard();
+  }, []);
+  return (
+    <table style={{width:'100%',background:'#fff',borderRadius:8,boxShadow:'0 2px 8px #2196f322',margin:'0 auto',fontSize:16}}>
+      <thead>
+        <tr style={{background:'#e3f2fd',color:'#222'}}>
+          <th style={{padding:8}}>#</th>
+          <th style={{padding:8}}>Nama</th>
+          <th style={{padding:8}}>Skor</th>
+        </tr>
+      </thead>
+      <tbody>
+        {data.length === 0 && (
+          <tr><td colSpan={3} style={{padding:16,textAlign:'center'}}>Belum ada data leaderboard.</td></tr>
+        )}
+        {data.map((row, i) => (
+          <tr key={row.username+row.skor} style={{background:i%2?'#f7f7f7':'#fff'}}>
+            <td style={{padding:8}}>{i+1}</td>
+            <td style={{padding:8}}>{row.username}</td>
+            <td style={{padding:8}}>{row.skor}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
 
   // Fungsi untuk membuka review - TAMBAHAN BARU
   const handleShowReview = () => {
