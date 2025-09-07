@@ -6,7 +6,7 @@ import { questions } from './questions'; // FIXED: Ubah dari './questions' menja
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/lib/supabaseClient';
-import ReviewJawaban from '../components/ReviewJawaban'; // Import komponen ReviewJawaban
+// ...existing code...
 
 export default function QuizPage() {
   // State
@@ -206,13 +206,19 @@ export default function QuizPage() {
         </motion.div>
       )}
       
-      {/* Komponen ReviewJawaban - TAMBAHAN BARU */}
-      {showReview && reviewData && (
-        <ReviewJawaban 
-          soalList={reviewData.soalList}
-          jawabanUser={reviewData.jawabanUser}
-          onClose={() => setShowReview(false)}
-        />
+..      {/* Leaderboard langsung tampil di bawah tombol setelah quiz selesai */}
+      {step >= quizQuestions.length && (
+        <motion.div
+          key="leaderboard"
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -40 }}
+          transition={{ duration: 0.4, type: 'spring' }}
+          style={{marginTop: 32, textAlign: 'center'}}
+        >
+          <h2 style={{color:'#43a047',fontWeight:700,fontSize:24,marginBottom:16}}>Leaderboard</h2>
+          <LeaderboardTable />
+        </motion.div>
       )}
     </AnimatePresence>
   );
@@ -529,24 +535,7 @@ function SelesaiComponent({
           🔄 Ulangi Quiz
         </button>
         
-        {/* Tombol Review Jawaban - TAMBAHAN BARU */}
-        {userAnswers.length > 0 && (
-          <button
-            onClick={handleShowReview}
-            style={{
-              padding: "12px 32px",
-              background: "#2196f3",
-              color: "#fff",
-              borderRadius: "8px",
-              fontWeight: "600",
-              fontSize: "1.1rem",
-              cursor: "pointer",
-              border: "none",
-            }}
-          >
-            📋 Review Jawaban
-          </button>
-        )}
+  // ...existing code...
         
         <Link
           href="/"
