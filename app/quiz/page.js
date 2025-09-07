@@ -1,3 +1,5 @@
+"use client";
+
 // Komponen LeaderboardTable sederhana
 function LeaderboardTable() {
   const [data, setData] = useState([]);
