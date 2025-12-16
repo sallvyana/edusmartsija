@@ -34,7 +34,7 @@ export default function LeaderboardPage() {
             <tr style={{background: '#2196f3', color: '#fff'}}>
               <th style={{padding: '16px',fontSize:18}}>Peringkat</th>
               <th style={{padding: '16px',fontSize:18}}>Nama</th>
-              <th style={{padding: '16px',fontSize:18}}>Skor</th>
+              <th style={{padding: '16px',fontSize:18}}>score</th>
             </tr>
           </thead>
           <tbody>
@@ -42,9 +42,9 @@ export default function LeaderboardPage() {
               <tr key={user.id} style={{background: idx % 2 === 0 ? '#e3f2fd' : '#fff'}}>
                 <td style={{padding: '14px', textAlign: 'center', fontWeight: 'bold', color:'#2196f3',fontSize:17}}>{idx + 1}</td>
                 <td style={{padding: '14px', display:'flex',alignItems:'center',gap:8,fontSize:17}}>
-                 {user.username}
+                 {user.name}
                 </td>
-                <td style={{padding: '14px', textAlign: 'center', color:'#43a047',fontWeight:700,fontSize:17}}>{user.skor}</td>
+                <td style={{padding: '14px', textAlign: 'center', color:'#43a047',fontWeight:700,fontSize:17}}>{user.score}</td>
               </tr>
             ))}
           </tbody>

@@ -23,7 +23,7 @@ export default function Page() {
         // Ambil data dari table leaderboard
         const { data, error } = await supabase
           .from("leaderboard")
-          .select("username, skor");
+          .select("name, score");
 
         if (error) {
           console.error("Error fetching stats:", error);
@@ -37,10 +37,10 @@ export default function Page() {
         }
 
         const totalQuizzes = data.length;
-        const uniqueUsers = new Set(data.map(d => d.username));
+        const uniqueUsers = new Set(data.map(d => d.name));
         const activePlayers = uniqueUsers.size;
         const avgScore = totalQuizzes > 0 
-          ? Math.round((data.reduce((acc, d) => acc + (d.skor || 0), 0) / totalQuizzes) * 10) / 10
+          ? Math.round((data.reduce((acc, d) => acc + (d.score || 0), 0) / totalQuizzes) * 10) / 10
           : 0;
 
         setStats({

@@ -7,9 +7,9 @@ const supabase = createClient(
 );
 export async function POST(req) {
   try {
-    const { username, category, number, jawaban } = await req.json();
+    const { name, category, number, jawaban } = await req.json();
 
-    if (!username || !category || !number || !jawaban) {
+    if (!name || !category || !number || !jawaban) {
       return NextResponse.json(
         { error: "Parameter kurang lengkap" },
         { status: 400 }
@@ -35,13 +35,13 @@ export async function POST(req) {
 
     const kunci = soalArr[idx];
     const isCorrect = jawaban.toUpperCase() === kunci.answer;
-    const skor = isCorrect ? 10 : 0;
+    const score = isCorrect ? 10 : 0;
 
     // simpan ke Supabase
     const { error } = await supabase.from("leaderboard").insert([
       {
-        username,
-        skor,
+        name,
+        score,
       },
     ]);
 
@@ -53,7 +53,7 @@ export async function POST(req) {
     return NextResponse.json({
       success: true,
       isCorrect,
-      skor,
+      score,
       explanation: kunci.explanation,
     });
   } catch (err) {

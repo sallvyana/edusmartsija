@@ -288,8 +288,8 @@ function SelesaiComponent({
       setSaveError("");
 
       const payload = {
-        username: name, // FIXED: Ganti dari 'name' ke 'username' sesuai API
-        skor: score * 10, // FIXED: Skor dalam bentuk nilai (10 per benar)
+        name: name, // FIXED: Ganti dari 'name' ke 'name' sesuai API
+        score: score * 10, // FIXED: score dalam bentuk nilai (10 per benar)
         // Bisa tambahkan field lain jika diperlukan
       };
 
@@ -314,7 +314,7 @@ function SelesaiComponent({
   useEffect(() => {
   const saveScore = async () => {
     if (!name || savedOnce.current) {
-      console.log("⏭️ Skip simpan skor:", { name, savedOnce: savedOnce.current });
+      console.log("⏭️ Skip simpan score:", { name, savedOnce: savedOnce.current });
       return;
     }
 
@@ -331,9 +331,9 @@ function SelesaiComponent({
       };
       
       console.log("📤 Mengirim payload:", payload);
-      console.log("📤 URL endpoint:", "/api/simpanskor");
+      console.log("📤 URL endpoint:", "/api/simpanscore");
       
-      const res = await fetch("/api/simpanskor", {
+      const res = await fetch("/api/simpanscore", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -347,10 +347,10 @@ function SelesaiComponent({
 
       if (!res.ok) {
         console.error("❌ Response tidak OK:", data);
-        throw new Error(data.error || "Gagal simpan skor");
+        throw new Error(data.error || "Gagal simpan score");
       }
 
-      console.log("✅ Skor berhasil disimpan!");
+      console.log("✅ score berhasil disimpan!");
       console.log("✅ Data yang tersimpan:", data.data);
       
       // Perbaikan akses ID
@@ -361,13 +361,13 @@ function SelesaiComponent({
       savedOnce.current = true;
 
     } catch (err) {
-      console.error("❌ Error saat simpan skor:", err);
+      console.error("❌ Error saat simpan score:", err);
       console.error("❌ Error message:", err.message);
       console.error("❌ Error stack:", err.stack);
       setSaveError(err.message);
     } finally {
       setSaving(false);
-      console.log("🏁 Proses simpan skor selesai");
+      console.log("🏁 Proses simpan score selesai");
     }
   };
 
@@ -397,7 +397,7 @@ function SelesaiComponent({
       // Ambil data dari table leaderboard
       const { data, error } = await supabase
         .from("leaderboard")
-        .select("username, skor");
+        .select("name, score");
 
       if (error) {
         console.error(error);
@@ -405,10 +405,10 @@ function SelesaiComponent({
       }
 
       const totalQuizzes = data.length;
-      const activePlayers = new Set(data.map((d) => d.username)).size;
+      const activePlayers = new Set(data.map((d) => d.name)).size;
       const avgScore = totalQuizzes
         ? Math.round(
-            (data.reduce((acc, d) => acc + d.skor, 0) / totalQuizzes) 
+            (data.reduce((acc, d) => acc + d.score, 0) / totalQuizzes) 
           )
         : 0;
 
@@ -477,16 +477,16 @@ function SelesaiComponent({
 
         {/* STATUS SIMPAN */}
         {saving && (
-          <p style={{ color: "#222", marginTop: 8 }}>Menyimpan skor ke server…</p>
+          <p style={{ color: "#222", marginTop: 8 }}>Menyimpan score ke server…</p>
         )}
         {saveError && (
           <p style={{ color: "#f44336", marginTop: 8 }}>
-            Gagal simpan skor: {saveError}
+            Gagal simpan score: {saveError}
           </p>
         )}
         {savedId && (
           <p style={{ color: "#2e7d32", marginTop: 8 }}>
-            Skor tersimpan ✓
+            score tersimpan ✓
           </p>
         )}
 
