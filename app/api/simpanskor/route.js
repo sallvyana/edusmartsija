@@ -4,18 +4,25 @@ import { NextResponse } from 'next/server'
 export async function POST(request) {
   try {
     const body = await request.json()
-    const { nama, skor, totalSoal, waktu, kategori } = body
+    const { name, score, totalSoal, waktu, category} = body
     
-    console.log('Data yang akan disimpan:', { nama, skor, totalSoal, waktu, kategori })
+     if (!name || !score || !category || !totalSoal || !waktu) {
+      return NextResponse.json(
+        { error: "Payload tidak lengkap" },
+        { status: 400 }
+      )
+    }
+
+    console.log('Data yang akan disimpan:', { name, score, totalSoal, waktu, category })
     
     const { data, error } = await supabase
       .from('leaderboard')
       .insert([{
-        name: nama,                    // sesuai kolom 'name'
-        score: parseInt(skor),         // sesuai kolom 'score'
+        name: name,                    // sesuai kolom 'name'
+        score: parseInt(score),         // sesuai kolom 'score'
         total_soal: parseInt(totalSoal), // sesuai kolom 'total_soal'
         waktu: waktu,                  // sesuai kolom 'waktu'
-        category: kategori             // sesuai kolom 'category'
+        category: category            // sesuai kolom 'category'
         // user_id dan created_at akan diisi otomatis jika ada default value
       }])
       .select()
