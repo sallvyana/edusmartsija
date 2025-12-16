@@ -1,6 +1,7 @@
 "use client";
 
 import Image from 'next/image';
+import { supabase } from '@/lib/supabaseClient';
 import Link from 'next/link';
 import { questions } from './questions'; // FIXED: Ubah dari './questions' menjadi sama dengan nama file
 import { useState, useEffect, useRef } from 'react';
@@ -394,11 +395,8 @@ function SelesaiComponent({
 
   useEffect(() => {
     const fetchStats = async () => {
-      // Ambil data dari table leaderboard
-      const { data, error } = await supabase
-        .from("leaderboard")
-        .select("name, score");
-
+    const res = await fetch('/api/stats')
+    const data = await res.json()
       if (error) {
         console.error(error);
         return;
