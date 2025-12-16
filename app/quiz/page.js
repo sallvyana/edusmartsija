@@ -323,7 +323,7 @@ function SelesaiComponent({
         name: name,
         score: score * 10,
         category: category,
-        total_soal: quizQuestions.length,
+        totalSoal: quizQuestions.length,
         waktu: totalSeconds,
       };
 
