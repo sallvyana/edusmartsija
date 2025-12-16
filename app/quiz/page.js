@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { questions } from './questions'; // FIXED: Ubah dari './questions' menjadi sama dengan nama file
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { supabase } from '@/lib/supabaseClient';
 import ReviewJawaban from '../components/ReviewJawaban'; // Import komponen ReviewJawaban
 
 export default function QuizPage() {
@@ -282,7 +281,7 @@ function SelesaiComponent({
   const savedOnce = useRef(false); // cegah double-insert
 
   // FIXED: Simpan ke table leaderboard (bukan scores)
-  useEffect(() => {
+  /**useEffect(() => {
     const save = async () => {
       if (!name || savedOnce.current) return;
       setSaving(true);
@@ -310,7 +309,49 @@ function SelesaiComponent({
     };
 
     save();
-  }, [name, score]);
+  }, [name, score]);**/
+
+  useEffect(() => {
+  const saveScore = async () => {
+    if (!name || savedOnce.current) return;
+
+    try {
+      setSaving(true);
+      setSaveError("");
+
+      const payload = {
+        name: name,
+        score: score * 10,
+        category: category,
+        total_soal: quizQuestions.length,
+        waktu: totalSeconds,
+      };
+
+      const res = await fetch("/api/simpanskor", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Gagal simpan skor");
+      }
+
+      setSavedId(data.id);
+      savedOnce.current = true;
+
+    } catch (err) {
+      setSaveError(err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+      saveScore();
+    }, [name, score]);
+
 
   // Setup data review saat komponen dimuat - TAMBAHAN BARU
   useEffect(() => {
