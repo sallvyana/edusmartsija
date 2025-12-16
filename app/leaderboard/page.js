@@ -1,5 +1,4 @@
 "use client";
-import Image from "next/image";
 import { useEffect, useState } from "react";
 
 export default function LeaderboardPage() {
@@ -9,9 +8,9 @@ export default function LeaderboardPage() {
     const fetchLeaderboard = async () => {
       try {
         const res = await fetch("/api/leaderboard");
-        const data = await res.json();
-        if (Array.isArray(data)) {
-          setLeaderboard(data);
+        const json = await res.json();
+        if (Array.isArray(json.data)) {
+          setLeaderboard(json.data);
         }
       } catch (err) {
         console.error("Gagal ambil leaderboard:", err);
@@ -24,7 +23,7 @@ export default function LeaderboardPage() {
   return (
     <main style={{padding: '32px', maxWidth: '600px', margin: '40px auto', background:'#e3f2fd', borderRadius:24, boxShadow:'0 2px 16px rgba(33,150,243,0.07)'}}>
       <header style={{display:'flex',alignItems:'center',gap:16,padding:'24px 0',justifyContent:'center'}}>
-        <Image src="/leaderboard.png" alt="Leaderboard" width={48} height={48} />
+
         <h1 style={{fontWeight:800,fontSize:32,color:'#2196f3',letterSpacing:1}}>Leaderboard</h1>
       </header>
       {leaderboard.length === 0 ? (
@@ -43,7 +42,7 @@ export default function LeaderboardPage() {
               <tr key={user.id} style={{background: idx % 2 === 0 ? '#e3f2fd' : '#fff'}}>
                 <td style={{padding: '14px', textAlign: 'center', fontWeight: 'bold', color:'#2196f3',fontSize:17}}>{idx + 1}</td>
                 <td style={{padding: '14px', display:'flex',alignItems:'center',gap:8,fontSize:17}}>
-                  <Image src="/user.png" alt="User" width={28} height={28} /> {user.username}
+                 {user.username}
                 </td>
                 <td style={{padding: '14px', textAlign: 'center', color:'#43a047',fontWeight:700,fontSize:17}}>{user.skor}</td>
               </tr>
