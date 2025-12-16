@@ -2,44 +2,125 @@ import { supabase } from '@/lib/supabaseClient'
 import { NextResponse } from 'next/server'
 
 export async function POST(request) {
+  console.log('🔵 API Route: Menerima request POST')
+  
   try {
-    const body = await request.json()
-    const { name, score, totalSoal, waktu, category} = body
-    
-     if (!name || !score || !category || !totalSoal || !waktu) {
+    // Parse request body
+    let body;
+    try {
+      body = await request.json()
+      console.log('📥 Body request:', body)
+    } catch (parseError) {
+      console.error('❌ Error parsing request body:', parseError)
       return NextResponse.json(
-        { error: "Payload tidak lengkap" },
+        { error: "Invalid JSON in request body" },
         { status: 400 }
       )
     }
 
-    console.log('Data yang akan disimpan:', { name, score, totalSoal, waktu, category })
+    const { name, score, totalSoal, waktu, category } = body
     
+    console.log('📝 Data extracted:', { name, score, totalSoal, waktu, category })
+    
+    // Validasi input
+    if (!name || !name.trim()) {
+      console.error('❌ Validasi gagal: name kosong')
+      return NextResponse.json(
+        { error: "Nama tidak boleh kosong" },
+        { status: 400 }
+      )
+    }
+    
+    if (score === undefined || score === null) {
+      console.error('❌ Validasi gagal: score kosong')
+      return NextResponse.json(
+        { error: "Score tidak boleh kosong" },
+        { status: 400 }
+      )
+    }
+    
+    if (!category || !category.trim()) {
+      console.error('❌ Validasi gagal: category kosong')
+      return NextResponse.json(
+        { error: "Kategori tidak boleh kosong" },
+        { status: 400 }
+      )
+    }
+    
+    if (!totalSoal) {
+      console.error('❌ Validasi gagal: totalSoal kosong')
+      return NextResponse.json(
+        { error: "Total soal tidak boleh kosong" },
+        { status: 400 }
+      )
+    }
+    
+    if (waktu === undefined || waktu === null) {
+      console.error('❌ Validasi gagal: waktu kosong')
+      return NextResponse.json(
+        { error: "Waktu tidak boleh kosong" },
+        { status: 400 }
+      )
+    }
+
+    console.log('✅ Validasi berhasil')
+    
+    // Prepare data untuk insert
+    const dataToInsert = {
+      name: name.trim(),
+      score: parseInt(score),
+      total_soal: parseInt(totalSoal),
+      waktu: parseInt(waktu),
+      category: category.trim()
+    }
+    
+    console.log('📤 Data yang akan di-insert:', dataToInsert)
+    console.log('🔵 Menyimpan ke Supabase...')
+    
+    // Insert ke database
     const { data, error } = await supabase
       .from('leaderboard')
-      .insert([{
-        name: name,                    // sesuai kolom 'name'
-        score: parseInt(score),         // sesuai kolom 'score'
-        total_soal: parseInt(totalSoal), // sesuai kolom 'total_soal'
-        waktu: waktu,                  // sesuai kolom 'waktu'
-        category: category            // sesuai kolom 'category'
-        // user_id dan created_at akan diisi otomatis jika ada default value
-      }])
+      .insert([dataToInsert])
       .select()
     
     if (error) {
-      console.error('Supabase error:', error)
-      throw error
+      console.error('❌ Supabase error:', error)
+      console.error('❌ Error details:', JSON.stringify(error, null, 2))
+      return NextResponse.json(
+        { error: `Database error: ${error.message}` },
+        { status: 500 }
+      )
     }
     
-    console.log('Data berhasil disimpan:', data)
-    return NextResponse.json({ success: true, data })
+    console.log('✅ Data berhasil disimpan:', data)
+    
+    return NextResponse.json(
+      { 
+        success: true, 
+        data: data 
+      },
+      { 
+        status: 200,
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      }
+    )
     
   } catch (error) {
-    console.error('API Error:', error)
+    console.error('❌ API Error (catch):', error)
+    console.error('❌ Error name:', error.name)
+    console.error('❌ Error message:', error.message)
+    console.error('❌ Error stack:', error.stack)
+    
     return NextResponse.json(
-      { error: error.message }, 
-      { status: 500 }
+      { error: `Server error: ${error.message}` }, 
+      { 
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      }
     )
   }
 }
