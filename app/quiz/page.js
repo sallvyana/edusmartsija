@@ -331,9 +331,9 @@ function SelesaiComponent({
       };
       
       console.log("📤 Mengirim payload:", payload);
-      console.log("📤 URL endpoint:", "/api/simpanscore");
+      console.log("📤 URL endpoint:", "/api/simpanskor");
       
-      const res = await fetch("/api/simpanscore", {
+      const res = await fetch("/api/simpanskor", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
