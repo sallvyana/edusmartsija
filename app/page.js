@@ -5,7 +5,7 @@ import Link from "next/link";
 import styles from "./page.module.css";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import { supabase } from '@/lib/supabaseClient';
+import { supabase } from "../lib/supabaseClient";
 
 export default function Page() {
   // Real-time stats dari Supabase
@@ -18,9 +18,12 @@ export default function Page() {
   });
 
   useEffect(() => {
-   const fetchStats = async () => {
-    const res = await fetch('/api/stats')
-    const data = await res.json()
+    const fetchStats = async () => {
+      try {
+        // Ambil data dari table leaderboard
+        const { data, error } = await supabase
+          .from("leaderboard")
+          .select("name, score");
 
         if (error) {
           console.error("Error fetching stats:", error);
