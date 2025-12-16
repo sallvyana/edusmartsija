@@ -313,7 +313,10 @@ function SelesaiComponent({
 
   useEffect(() => {
   const saveScore = async () => {
-    if (!name || savedOnce.current) return;
+    if (!name || savedOnce.current) {
+      console.log("⏭️ Skip simpan skor:", { name, savedOnce: savedOnce.current });
+      return;
+    }
 
     try {
       setSaving(true);
@@ -326,31 +329,50 @@ function SelesaiComponent({
         totalSoal: quizQuestions.length,
         waktu: totalSeconds,
       };
-
+      
+      console.log("📤 Mengirim payload:", payload);
+      console.log("📤 URL endpoint:", "/api/simpanskor");
+      
       const res = await fetch("/api/simpanskor", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
+      console.log("📥 Response status:", res.status);
+      console.log("📥 Response ok?:", res.ok);
+
       const data = await res.json();
+      console.log("📥 Response data:", data);
 
       if (!res.ok) {
+        console.error("❌ Response tidak OK:", data);
         throw new Error(data.error || "Gagal simpan skor");
       }
 
-      setSavedId(data.id);
+      console.log("✅ Skor berhasil disimpan!");
+      console.log("✅ Data yang tersimpan:", data.data);
+      
+      // Perbaikan akses ID
+      const savedRecordId = data.data?.[0]?.id || data.id;
+      console.log("✅ ID record:", savedRecordId);
+      
+      setSavedId(savedRecordId);
       savedOnce.current = true;
 
     } catch (err) {
+      console.error("❌ Error saat simpan skor:", err);
+      console.error("❌ Error message:", err.message);
+      console.error("❌ Error stack:", err.stack);
       setSaveError(err.message);
     } finally {
       setSaving(false);
+      console.log("🏁 Proses simpan skor selesai");
     }
   };
 
-      saveScore();
-    }, [name, score]);
+  saveScore();
+}, [name, score, category, quizQuestions.length, totalSeconds]); // ✅ Tambahkan semua dependencies
 
 
   // Setup data review saat komponen dimuat - TAMBAHAN BARU
